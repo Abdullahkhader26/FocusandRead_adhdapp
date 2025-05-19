@@ -1,0 +1,1665 @@
+﻿@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="~/css/dashboard.css" rel="stylesheet" />
+
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="left-nav d-flex align-items-center">
+            <nav class="main-nav">
+                <a href="#" class="nav-link active" data-section="summary">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Summary</span>
+                </a>
+                <a href="#" class="nav-link" data-section="flashcards">
+                    <i class="bi bi-card-text"></i>
+                    <span>Flashcards</span>
+                </a>
+                <a href="#" class="nav-link" data-section="workbook">
+                    <i class="bi bi-book"></i>
+                    <span>Workbook</span>
+                </a>
+                <a href="#" class="nav-link" data-section="quizzes">
+                    <i class="bi bi-patch-question"></i>
+                    <span>Quizzes</span>
+                </a>
+                <a href="#" class="nav-link" data-section="ai">
+                    <i class="bi bi-robot"></i>
+                    <span>AI Assistant</span>
+                </a>
+            </nav>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="right-nav d-flex align-items-center">
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('relax')">
+                    <i class="bi bi-headphones"></i>
+                    <span>Relax</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="relax-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-headphones"></i>
+                        <span>Relaxation Activities</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-music-note-beamed"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Focus Music</div>
+                            <div class="activity-desc">Lofi, classical, nature sounds</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-brightness-high"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Breathing Exercises</div>
+                            <div class="activity-desc">4-7-8 technique, box breathing</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-puzzle"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Mind Games</div>
+                            <div class="activity-desc">Memory, puzzles, brain teasers</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Rewards Center</div>
+                            <div class="activity-desc">Track achievements & points</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-center">View all activities</a>
+                </div>
+            </div>
+
+            <!-- Timer Dropdown -->
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('timer')">
+                    <i class="bi bi-stopwatch"></i>
+                    <span>Timer</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="timer-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-stopwatch"></i>
+                        <span>Timer Settings</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+
+                    <div class="timer-options">
+                        <h6>Preset Timers:</h6>
+                        <div>
+                            <span class="timer-preset active" data-minutes="25">Pomodoro (25m)</span>
+                            <span class="timer-preset" data-minutes="15">Short Break (15m)</span>
+                            <span class="timer-preset" data-minutes="5">Quick Break (5m)</span>
+                            <span class="timer-preset" data-minutes="50">Deep Focus (50m)</span>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    <div class="activity-item">
+                        <div class="progress-ring">
+                            <svg width="24" height="24">
+                                <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#e3f2fd" stroke-width="3"></circle>
+                                <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#00bcd4" stroke-width="3" stroke-dasharray="62.8" stroke-dashoffset="31.4"></circle>
+                            </svg>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Remaining Time</div>
+                            <div class="activity-desc">25:00</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="d-flex justify-content-around p-2">
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-play"></i> Start</button>
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-pause"></i> Pause</button>
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Files Dropdown -->
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('files')">
+                    <i class="bi bi-folder"></i>
+                    <span>Files</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="files-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-folder"></i>
+                        <span>File Management</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Upload New</div>
+                            <div class="activity-desc">PDF, DOCX, TXT, images</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">My Documents</div>
+                            <div class="activity-desc">12 files, 3 folders</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-stars"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Recent Files</div>
+                            <div class="activity-desc">lecture_notes.pdf, summary.docx</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-share"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Shared With Me</div>
+                            <div class="activity-desc">3 files from classmates</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-center">Open File Manager</a>
+                </div>
+            </div>
+
+            <!-- Tools Dropdown -->
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('tools')">
+                    <i class="bi bi-tools"></i>
+                    <span>Tools</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="tools-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-tools"></i>
+                        <span>Study Tools</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-highlighter"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Annotation Tool</div>
+                            <div class="activity-desc">Highlight and annotate PDFs</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-translate"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Translation</div>
+                            <div class="activity-desc">Translate text to 40+ languages</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Progress Tracker</div>
+                            <div class="activity-desc">View your study analytics</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Study Planner</div>
+                            <div class="activity-desc">Schedule your sessions</div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-center">All Tools</a>
+                </div>
+            </div>
+
+
+            <!-- Network dropdown -->
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('network')">
+                    <i class="bi bi-people"></i>
+                    <span>My Network</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="network-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-people"></i>
+                        <span>My Learning Network</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Study Groups</div>
+                            <div class="activity-desc">Join or create study groups</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Discussions</div>
+                            <div class="activity-desc">Engage in academic discussions</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-share"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Shared Resources</div>
+                            <div class="activity-desc">Access shared study materials</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Find Tutors</div>
+                            <div class="activity-desc">Connect with subject experts</div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-center">Manage Network</a>
+                </div>
+            </div>
+
+            <!-- User dropdown -->
+            <div class="user-dropdown">
+                <button class="nav-btn user-btn" onclick="toggleDropdown('user')">
+                    <i class="bi bi-person-circle"></i>
+                    <span>@ViewBag.FullName</span>
+                    <i class="bi bi-chevron-down ms-1"></i>
+                </button>
+                <div class="dropdown-menu" id="user-dropdown">
+                    <div class="dropdown-item d-flex align-items-center">
+                        <i class="bi bi-person me-2"></i>
+                        <span>Profile</span>
+                    </div>
+                    <div class="dropdown-item d-flex align-items-center">
+                        <i class="bi bi-gear me-2"></i>
+                        <span>Settings</span>
+                    </div>
+                    <div class="dropdown-item d-flex align-items-center">
+                        <i class="bi bi-moon me-2"></i>
+                        <span>Dark Mode</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="/Account/Logout" class="dropdown-item d-flex align-items-center">
+                        <i class="bi bi-box-arrow-right me-2"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="left-side">
+            <div class="doc-box">
+                <div class="left-content">
+                    <!-- Upload Container -->
+                    <div id="upload-container" class="text-center p-4" style="display: @((ViewBag.ShowLeftPanel == true || TempData["UploadedText"] != null) ? "none" : "flex")">
+                        <div class="welcome-section mb-5">
+                            <h4 class="display-6 mb-3">Welcome, @ViewBag.FullName</h4>
+                            <p class="text-muted">Choose how you want to add your content</p>
+                        </div>
+
+                        <div class="upload-options">
+                            <div class="upload-card mb-3" onclick="document.getElementById('file-upload').click()">
+                                <div class="upload-icon">
+                                    <i class="bi bi-file-text display-4"></i>
+                                </div>
+                                <h5>Document Upload</h5>
+                                <p class="text-muted small">Upload PDF or TXT files</p>
+                            </div>
+
+                            <div class="upload-card mb-3" onclick="document.getElementById('image-upload').click()">
+                                <div class="upload-icon">
+                                    <i class="bi bi-image display-4"></i>
+                                </div>
+                                <h5>Image Upload</h5>
+                                <p class="text-muted small">Upload PNG, JPG, or JPEG</p>
+                            </div>
+
+                            <div class="upload-card" onclick="toggleTextInput()">
+                                <div class="upload-icon">
+                                    <i class="bi bi-pencil-square display-4"></i>
+                                </div>
+                                <h5>Manual Input</h5>
+                                <p class="text-muted small">Type or paste your text</p>
+                            </div>
+                        </div>
+
+                        <form id="uploadForm" method="post" enctype="multipart/form-data" asp-controller="Dashboard" asp-action="UploadDocument">
+                            <input type="file" id="file-upload" name="file" class="d-none" accept=".txt,.pdf" onchange="handleFileSelection(this, 'Document')">
+                            <input type="file" id="image-upload" name="image" class="d-none" accept=".png,.jpg,.jpeg" onchange="handleFileSelection(this, 'Image')">
+                            <div id="file-info" class="upload-info mt-4"></div>
+                        </form>
+                    </div>
+
+                    <!-- Manual Text Input -->
+                    <div id="manual-text" style="display: none;" class="p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="m-0">Manual Text Input</h5>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="toggleTextInput()">
+                                <i class="bi bi-x"></i> Cancel
+                            </button>
+                        </div>
+                        <textarea class="form-control mb-3" style="min-height: 200px" 
+                                placeholder="Type or paste your content here..."></textarea>
+                        <div class="text-end">
+                            <button class="btn btn-primary" onclick="submitManualText()">
+                                <i class="bi bi-send"></i> Submit Text
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- File Display Container -->
+                    <div id="file-display-container" style="display: @((ViewBag.ShowLeftPanel == true || TempData["UploadedText"] != null) ? "flex" : "none")" class="d-flex flex-column h-100 pt-2">
+                        <!-- Controls Bar -->
+                        <div class="controls-bar">
+                            <div class="d-flex gap-2 align-items-center">
+                                <!-- Text Alignment Controls -->
+                                <div class="btn-group btn-group-sm me-2" role="group">
+                                    <button type="button" class="btn btn-light active" onclick="setTextAlign('left')">
+                                        <i class="bi bi-text-left"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light" onclick="setTextAlign('center')">
+                                        <i class="bi bi-text-center"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light" onclick="setTextAlign('right')">
+                                        <i class="bi bi-text-right"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Dark Mode Toggle -->
+                                <button type="button" class="btn btn-light btn-sm action-btn" onclick="toggleDarkMode()">
+                                    <i class="bi bi-moon"></i>
+                                </button>
+
+                                <!-- File Actions -->
+                                <button class="btn btn-light btn-sm action-btn" onclick="downloadContent()" data-bs-toggle="tooltip" title="Download file">
+                                    <i class="bi bi-download"></i>
+                                </button>
+
+                                <button class="btn btn-light btn-sm action-btn" onclick="shareContent()" data-bs-toggle="tooltip" title="Share">
+                                    <i class="bi bi-share"></i>
+                                </button>
+
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-light btn-sm action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Text controls">
+                                        <i class="bi bi-sliders"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end custom-dropdown">
+                                        <li class="dropdown-header">Text Settings</li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="adjustFontSize('increase')">
+                                                <i class="bi bi-zoom-in me-2"></i>Increase Font Size
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="adjustFontSize('decrease')">
+                                                <i class="bi bi-zoom-out me-2"></i>Decrease Font Size
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="dropdown-header">Layout</li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="toggleLineHeight()">
+                                                <i class="bi bi-text-spacing me-2"></i>Toggle Line Spacing
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="toggleReadingMode()">
+                                                <i class="bi bi-book me-2"></i>Reading Mode
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <button onclick="resetUpload()" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i>
+                                    Back
+                                </button>
+
+                                <span class="filename-display ms-3">@(ViewBag.FileName ?? TempData["FileName"])</span>
+                            </div>
+                        </div>
+                        
+                        <hr class="divider my-2">
+                        
+                        <div class="document-content flex-grow-1 bg-white pt-2">
+                            <div id="content-wrapper">
+                                <pre id="content-display" class="content-text mb-0">@(ViewBag.UploadedText ?? TempData["UploadedText"])</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="doc-box p-4">
+                <div id="section-content">
+                    <h4 class="mb-4"><strong>Summary</strong></h4>
+                    <p>This is where the summary will appear...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-navigation">
+        <button class="arrow-btn"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <style>
+        .main-content {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 60px);
+            padding: 20px;
+            gap: 40px;
+        }
+
+        .left-side, .right-side {
+            flex: 1;
+            min-width: 50%;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .doc-box {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .left-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #file-display-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .document-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .file-display-container {
+            background-color: #f8f9fa;
+        }
+
+        .file-header {
+            position: relative;
+            min-height: 120px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background-color: #f8f9fa;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .action-btn:hover {
+            background-color: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .file-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .file-icon-wrapper i {
+            font-size: 24px;
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .file-meta span {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .file-meta i {
+            color: #0d6efd;
+            margin-right: 0.25rem;
+        }
+
+        .custom-dropdown {
+            min-width: 220px;
+            padding: 0.5rem 0;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .dropdown-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            padding: 0.5rem 1rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: #2c3e50;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+        }
+
+        .content-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: none;
+            border: none;
+            white-space: pre-wrap;
+        }
+
+        .content-toolbar {
+            padding: 0.5rem 1rem;
+        }
+
+        .content-toolbar .btn-group {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .btn-light.active {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .content-text {
+            color: #e0e0e0;
+        }
+
+        /* Reading mode styles */
+        .reading-mode {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.2rem;
+            line-height: 2;
+        }
+
+        /* Custom scrollbar */
+        .document-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .document-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .document-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .document-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .file-display-container {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Enhanced File Display Styles */
+        .file-display-container {
+            animation: fadeIn 0.3s ease-out;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .file-display-container:focus-within {
+            box-shadow: 0 6px 24px rgba(13, 110, 253, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .file-header {
+            background-color: #ffffff;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        .document-content {
+            background-color: #ffffff;
+            border-radius: 0 0 12px 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-top: none;
+        }
+
+        #content-wrapper {
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0 0 12px 12px;
+            min-height: 300px;
+        }
+
+        .content-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: none;
+            border: none;
+            white-space: pre-wrap;
+        }
+
+        .content-toolbar {
+            background: linear-gradient(to right, #f8f9fa, #ffffff);
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .content-toolbar .btn-group {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .content-toolbar .btn-light {
+            border-radius: 6px;
+            margin: 0 1px;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .content-toolbar .btn-light:hover {
+            background-color: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .content-toolbar .btn-light.active {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
+        }
+
+        /* Focus Mode Styles */
+        .reading-mode {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.2rem;
+            line-height: 2;
+            padding: 2rem 4rem;
+            background-color: #ffffff;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode Enhancements */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .content-text {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .file-header {
+            background: linear-gradient(to right, #2a2a2a, #1a1a1a);
+            border-color: #333;
+        }
+
+        .dark-mode .content-toolbar {
+            background: linear-gradient(to right, #2a2a2a, #1a1a1a);
+            border-color: #333;
+        }
+
+        .dark-mode .btn-light {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .btn-light:hover {
+            background-color: #333;
+        }
+
+        .dark-mode .btn-light.active {
+            background-color: #0d6efd;
+            color: #ffffff;
+        }
+
+        /* Enhanced Animations */
+        @@keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @@keyframes focusSpotlight {
+            from {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            to {
+                box-shadow: 0 6px 24px rgba(13, 110, 253, 0.15);
+            }
+        }
+
+        .file-display-container {
+            animation: fadeIn 0.4s ease-out, focusSpotlight 1s ease-in-out alternate infinite;
+        }
+
+        .controls-bar {
+            padding: 0.5rem 0;
+        }
+
+        .btn-group .btn-light {
+            border: 1px solid rgba(0,0,0,0.05);
+            padding: 0.4rem 0.6rem;
+        }
+
+        .btn-group .btn-light.active {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+
+        .filename-display {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        .divider {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .document-content {
+            border: none;
+            border-radius: 0;
+        }
+
+        .content-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: none;
+            border: none;
+            white-space: pre-wrap;
+        }
+
+        #file-display-container {
+            padding: 0 1rem;
+        }
+
+        .controls-bar {
+            padding: 0;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background-color: #f8f9fa;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .action-btn:hover {
+            background-color: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-group .btn-light {
+            border: 1px solid rgba(0,0,0,0.05);
+            padding: 0.4rem 0.6rem;
+        }
+
+        .btn-group .btn-light.active {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+
+        .filename-display {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        .divider {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .document-content {
+            border: none;
+            border-radius: 0;
+        }
+
+        #content-wrapper {
+            padding: 0;
+        }
+
+        .content-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: none;
+            border: none;
+            white-space: pre-wrap;
+            padding: 0;
+        }
+
+        .bottom-navigation {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .arrow-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: #0d6efd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .arrow-btn:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* تحديث تصميم الأزرار العلوية لتتناسق مع اليسار */
+        .right-nav .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: transparent;
+            color: #6c757d;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .right-nav .nav-btn:hover {
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .right-nav .nav-btn i {
+            font-size: 1.2rem;
+            color: inherit;
+        }
+
+        .right-nav .nav-btn.active {
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.1);
+        }
+
+        .right-nav .user-dropdown {
+            position: relative;
+        }
+
+        .right-nav .dropdown-menu {
+            margin-top: 10px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 8px 0;
+        }
+
+        .right-nav .activity-item {
+            padding: 10px 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .right-nav .activity-item:hover {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        .right-nav .activity-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        .right-nav .activity-info {
+            flex: 1;
+        }
+
+        .right-nav .activity-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .right-nav .activity-desc {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .right-nav .dropdown-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .right-nav .dropdown-header i {
+            color: #0d6efd;
+        }
+
+        /* تحديث تصميم زر المستخدم */
+        .right-nav .user-btn {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        .right-nav .user-btn:hover {
+            background: rgba(13, 110, 253, 0.2);
+        }
+
+        /* Add these styles to your existing styles */
+        .section-content-wrapper {
+            padding: 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header i {
+            font-size: 1.5rem;
+            color: #0d6efd;
+        }
+
+        .section-header h4 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .section-body {
+            padding: 15px 0;
+        }
+
+        .section-body .lead {
+            color: #6c757d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        #section-content {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 8px;
+        }
+
+        .nav-link i {
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.1);
+        }
+    </style>
+
+    <script>
+        // Function to toggle dropdowns
+        function toggleDropdown(id) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`${id}-dropdown`);
+
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu.id !== `${id}-dropdown`) {
+                    menu.classList.remove('show');
+                }
+            });
+
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking elsewhere
+        window.onclick = function(event) {
+            // Don't close if clicking inside a dropdown or on a dropdown toggle
+            if (event.target.closest('.dropdown-menu') || event.target.closest('.dropdown-toggle')) {
+                return;
+            }
+            
+            const dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (let i = 0; i < dropdowns.length; i++) {
+                const openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+         document.querySelectorAll('.timer-preset').forEach(preset => {
+            preset.addEventListener('click', function() {
+                document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                const minutes = this.getAttribute('data-minutes');
+                console.log(`Timer set to ${minutes} minutes`);
+
+            });
+        });
+        // Navigation functionality
+        const navLinks = document.querySelectorAll('.left-nav .nav-link');
+        const sectionContent = document.getElementById('section-content');
+
+        const contentMap = {
+            summary: `
+                <div class="section-content-wrapper">
+                    <div class="section-header">
+                        <i class="bi bi-journal-text me-2"></i>
+                        <h4 class="mb-4"><strong>Summary</strong></h4>
+                    </div>
+                    <div class="section-body">
+                        <p class="lead">This is where the summary will appear...</p>
+                    </div>
+                </div>`,
+            flashcards: `
+                <div class="section-content-wrapper">
+                    <div class="section-header">
+                        <i class="bi bi-card-text me-2"></i>
+                        <h4 class="mb-4"><strong>Flashcards</strong></h4>
+                    </div>
+                    <div class="section-body">
+                        <p class="lead">Generated flashcards go here.</p>
+                    </div>
+                </div>`,
+            workbook: `
+                <div class="section-content-wrapper">
+                    <div class="section-header">
+                        <i class="bi bi-book me-2"></i>
+                        <h4 class="mb-4"><strong>Workbook</strong></h4>
+                    </div>
+                    <div class="section-body">
+                        <p class="lead">Workbook content and exercises go here.</p>
+                    </div>
+                </div>`,
+            quizzes: `
+                <div class="section-content-wrapper">
+                    <div class="section-header">
+                        <i class="bi bi-patch-question me-2"></i>
+                        <h4 class="mb-4"><strong>Quizzes</strong></h4>
+                    </div>
+                    <div class="section-body">
+                        <p class="lead">Questions here related to the document.</p>
+                    </div>
+                </div>`,
+            ai: `
+                <div class="section-content-wrapper">
+                    <div class="section-header">
+                        <i class="bi bi-robot me-2"></i>
+                        <h4 class="mb-4"><strong>AI Assistant</strong></h4>
+                    </div>
+                    <div class="section-body">
+                        <p class="lead">Interact with the AI here.</p>
+                    </div>
+                </div>`
+        };
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                this.classList.add('active');
+
+                // Get the section name from data-section attribute
+                const section = this.getAttribute('data-section');
+                // Update the content in the right panel with fade effect
+                if (sectionContent && contentMap[section]) {
+                    sectionContent.style.opacity = '0';
+                    setTimeout(() => {
+                        sectionContent.innerHTML = contentMap[section];
+                        sectionContent.style.opacity = '1';
+                    }, 200);
+                }
+            });
+        });
+
+        function handleFileSelection(input, type) {
+            const fileInfo = document.getElementById('file-info');
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                fileInfo.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="bi bi-${type.toLowerCase() === 'image' ? 'image' : 'file-text'} me-2"></i>
+                            <strong>${file.name}</strong> (${formatFileSize(file.size)})
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Process ${type}
+                        </button>
+                    </div>`;
+                fileInfo.classList.add('show');
+            } else {
+                fileInfo.innerHTML = '';
+                fileInfo.classList.remove('show');
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function resetUpload() {
+            const uploadContainer = document.getElementById('upload-container');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            const manualText = document.getElementById('manual-text');
+            
+            // Show upload container
+            uploadContainer.style.display = 'flex';
+            
+            // Hide other containers
+            fileDisplayContainer.style.display = 'none';
+            manualText.style.display = 'none';
+            
+            // Reset form and info
+            document.getElementById('file-info').innerHTML = '';
+            document.getElementById('file-info').classList.remove('show');
+            document.getElementById('file-upload').value = '';
+            document.getElementById('image-upload').value = '';
+        }
+
+        function toggleTextInput() {
+            const manualText = document.getElementById('manual-text');
+            const uploadContainer = document.getElementById('upload-container');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            
+            if (manualText.style.display === 'none') {
+                // Show manual text input
+                manualText.style.display = 'block';
+                // Hide other containers
+                uploadContainer.style.display = 'none';
+                fileDisplayContainer.style.display = 'none';
+            } else {
+                // Show upload container
+                uploadContainer.style.display = 'flex';
+                // Hide other containers
+                manualText.style.display = 'none';
+                fileDisplayContainer.style.display = 'none';
+            }
+        }
+
+        function submitManualText() {
+            const textArea = document.querySelector('#manual-text textarea');
+            const contentDisplay = document.getElementById('content-display');
+            const manualText = document.getElementById('manual-text');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+
+            if (textArea.value.trim() !== '') {
+                document.getElementById('display-filename').textContent = 'Manual Text';
+                contentDisplay.textContent = textArea.value;
+                
+                // Hide manual text input
+                manualText.style.display = 'none';
+                // Show file display container
+                fileDisplayContainer.style.display = 'flex';
+                
+                // Update word count and format text
+                updateWordCount();
+                formatDisplayedText();
+            } else {
+                alert('Please enter some text before submitting.');
+            }
+        }
+
+        function formatDisplayedText() {
+            const contentDisplay = document.getElementById('content-display');
+            if (contentDisplay) {
+                let text = contentDisplay.textContent || contentDisplay.innerText;
+                if (text) {
+                    // Replace multiple newlines with paragraph breaks
+                    text = text.replace(/\n\s*\n/g, '</p><p>');
+                    // Replace single newlines with line breaks
+                    text = text.replace(/\n/g, '<br>');
+                    // Wrap in paragraphs if not already wrapped
+                    if (!text.startsWith('<p>')) {
+                        text = '<p>' + text + '</p>';
+                    }
+                    contentDisplay.innerHTML = text;
+                }
+            }
+        }
+
+        function formatTextWithLineBreaks(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+
+        function showUploadedFile(filename, content) {
+            const fileDisplay = document.getElementById('file-display-container');
+            const fileNameDisplay = document.getElementById('display-filename');
+            const contentDisplay = document.getElementById('content-display');
+
+            fileNameDisplay.textContent = filename;
+            contentDisplay.innerHTML = formatTextWithLineBreaks(content);
+            fileDisplay.style.display = 'flex';
+            document.getElementById('upload-container').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            const contentDisplay = document.getElementById('content-display');
+            
+            if (fileDisplayContainer.style.display === 'flex' && contentDisplay) {
+                formatDisplayedText();
+                updateWordCount();
+            }
+        });
+
+        let currentFontSize = 1.1;
+        let currentLineHeight = 1.8;
+        let isDarkMode = false;
+        let isReadingMode = false;
+
+        function adjustFontSize(action) {
+            const contentText = document.querySelector('.content-text');
+            if (action === 'increase' && currentFontSize < 1.5) {
+                currentFontSize += 0.1;
+            } else if (action === 'decrease' && currentFontSize > 0.8) {
+                currentFontSize -= 0.1;
+            }
+            contentText.style.fontSize = `${currentFontSize}rem`;
+        }
+
+        function toggleLineHeight() {
+            const contentText = document.querySelector('.content-text');
+            currentLineHeight = currentLineHeight === 1.8 ? 2.2 : 1.8;
+            contentText.style.lineHeight = currentLineHeight;
+        }
+
+        function updateWordCount() {
+            const contentDisplay = document.getElementById('content-display');
+            const wordCountElement = document.getElementById('word-count');
+            if (contentDisplay && wordCountElement) {
+                const text = contentDisplay.textContent || '';
+                const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                
+                // Animate the word count
+                const currentCount = parseInt(wordCountElement.textContent.split(' ')[0]) || 0;
+                animateNumber(currentCount, wordCount, (count) => {
+                    wordCountElement.textContent = `<i class="bi bi-hash me-1"></i>${count} words`;
+                });
+                updateReadTime(wordCount);
+            }
+        }
+
+        function updateReadTime(wordCount) {
+            const readTimeElement = document.getElementById('read-time');
+            const minutes = Math.ceil(wordCount / 200); // Assuming 200 words per minute
+            readTimeElement.textContent = `<i class="bi bi-clock me-1"></i>${minutes} min read`;
+        }
+
+        function animateNumber(start, end, callback) {
+            const duration = 1000;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const current = Math.floor(start + (end - start) * progress);
+                callback(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        function downloadContent() {
+            const content = document.getElementById('content-display').textContent;
+            const filename = document.getElementById('display-filename').textContent;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function shareContent() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.getElementById('display-filename').textContent,
+                    text: document.getElementById('content-display').textContent,
+                }).catch(console.error);
+            }
+        }
+
+        function toggleDarkMode() {
+            const contentWrapper = document.getElementById('content-wrapper');
+            isDarkMode = !isDarkMode;
+            contentWrapper.classList.toggle('dark-mode');
+        }
+
+        function toggleReadingMode() {
+            const contentDisplay = document.getElementById('content-display');
+            isReadingMode = !isReadingMode;
+            contentDisplay.classList.toggle('reading-mode');
+        }
+
+        function setTextAlign(alignment) {
+            const contentDisplay = document.getElementById('content-display');
+            contentDisplay.style.textAlign = alignment;
+            
+            // Update active state of alignment buttons
+            document.querySelectorAll('.content-toolbar .btn-group:first-child .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Pomodoro Timer Implementation
+        class PomodoroTimer {
+            constructor() {
+                this.timeLeft = 0;
+                this.isRunning = false;
+                this.timerId = null;
+                this.timerDisplay = document.querySelector('#timer-dropdown .activity-desc');
+                this.startButton = document.querySelector('#timer-dropdown .btn-primary:nth-child(1)');
+                this.pauseButton = document.querySelector('#timer-dropdown .btn-primary:nth-child(2)');
+                this.resetButton = document.querySelector('#timer-dropdown .btn-primary:nth-child(3)');
+                this.progressCircle = document.querySelector('.progress-circle:last-child');
+                
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                // Timer preset buttons
+                document.querySelectorAll('.timer-preset').forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        const minutes = parseInt(preset.getAttribute('data-minutes'));
+                        this.setTime(minutes);
+                        document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('active'));
+                        preset.classList.add('active');
+                    });
+                });
+
+                // Control buttons
+                this.startButton.addEventListener('click', () => this.start());
+                this.pauseButton.addEventListener('click', () => this.pause());
+                this.resetButton.addEventListener('click', () => this.reset());
+
+                // Set default time (25 minutes)
+                this.setTime(25);
+            }
+
+            setTime(minutes) {
+                this.timeLeft = minutes * 60;
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                this.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update progress circle
+                const totalSeconds = parseInt(document.querySelector('.timer-preset.active').getAttribute('data-minutes')) * 60;
+                const progress = (this.timeLeft / totalSeconds) * 62.8; // 62.8 is the circumference of the circle
+                this.progressCircle.style.strokeDashoffset = 62.8 - progress;
+            }
+
+            start() {
+                if (!this.isRunning && this.timeLeft > 0) {
+                    this.isRunning = true;
+                    this.startButton.style.display = 'none';
+                    this.pauseButton.style.display = 'inline-block';
+                    
+                    this.timerId = setInterval(() => {
+                        this.timeLeft--;
+                        this.updateDisplay();
+                        
+                        if (this.timeLeft <= 0) {
+                            this.complete();
+                        }
+                    }, 1000);
+                }
+            }
+
+            pause() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    clearInterval(this.timerId);
+                    this.startButton.style.display = 'inline-block';
+                    this.pauseButton.style.display = 'none';
+                }
+            }
+
+            reset() {
+                this.pause();
+                const minutes = parseInt(document.querySelector('.timer-preset.active').getAttribute('data-minutes'));
+                this.setTime(minutes);
+            }
+
+            complete() {
+                this.pause();
+                this.playNotificationSound();
+                this.showNotification();
+            }
+
+            playNotificationSound() {
+                const audio = new Audio('data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8avaIf5SvL7pndPvPpndJR9Kuu8fePvuiuhorgWjp7Mf/PRjxcFCPDkW31srioCExivv9lcwKEaHsf/7ow2Fl1T/9RkXgEhYElAoCLFtMArxwivDJJ+bR1HTKJdlEoTELCIqgEwVGSQ+hIm0NbK8WXcTEI0UPoa2NbG4y2K00JEWbZavJXkYaqo9CRHS55FcZTjKEk3NKoCYUnSQ0rWxrZbFKbKIhOKPZe1cJKzZSaQrIyULHDZmV5K4xySsDRKWOruanGtjLJXFEmwaIbDLX0hIPBUQPVFVkQkDoUNfSoDgQGKPekoxeGzA4DUvnn4bxzcZrtJyipKfPNy5w+9lnXwgqsiyHNeSVpemw4bWb9psYeq//uQZBoABQt4yMVxYAIAAAkQoAAAHvYpL5m6AAgAACXDAAAAD59jblTirQe9upFsmZbpMudy7Lz1X1DYsxOOSWpfPqNX2WqktK0DMvuGwlbNj44TleLPQ+Gsfb+GOWOKJoIrWb3cIMeeON6lz2umTqMXV8Mj30yWPpjoSa9ujK8SyeJP5y5mOW1D6hvLepeveEAEDo0mgCRClOEgANv3B9a6fikgUSu/DmAMATrGx7nng5p5iimPNZsfQLYB2sDLIkzRKZOHGAaUyDcpFBSLG9MCQALgAIgQs2YunOszLSAyQYPVC2YdGGeHD2dTdJk1pAHGAWDjnkcLKFymS3RQZTInzySoBwMG0QueC3gMsCEYxUqlrcxK6k1LQQcsmyYeQPdC2YfuGPASCBkcVMQQqpVJshui1tkXQJQV0OXGAZMXSOEEBRirXbVRQW7ugq7IM7rPWSZyDlM3IuNEkxzCOJ0ny2ThNkyRai1b6ev//3dzNGzNb//4uAvHT5sURcZCFcuKLhOFs8mLAAEAt4UWAAIABAAAAAB4qbHo0tIjVkUU//uQZAwABfSFz3ZqQAAAAAngwAAAE1HjMp2qAAAAACZDgAAAD5UkTE1UgZEUExqYynN1qZvqIOREEFmBcJQkwdxiFtw0qEOkGYfRDifBui9MQg4QAHAqWtAWHoCxu1Yf4VfWLPIM2mHDFsbQEVGwyqQoQcwnfHeIkNt9YnkiaS1oizycqJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZ4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=');
+                audio.play();
+            }
+
+            showNotification() {
+                if (Notification.permission === "granted") {
+                    new Notification("Pomodoro Timer", {
+                        body: "Time's up! Take a break.",
+                        icon: "/favicon.ico"
+                    });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            this.showNotification();
+                        }
+                    });
+                }
+            }
+        }
+
+        // Initialize Pomodoro Timer
+        document.addEventListener('DOMContentLoaded', () => {
+            const pomodoroTimer = new PomodoroTimer();
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/pomodoro.js"></script>
+</body>
+</html>
