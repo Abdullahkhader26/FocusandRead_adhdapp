@@ -1,10 +1,10 @@
-﻿using ADHDStudyApp.Models;
-using ADHDStudyApp.Data;
+﻿using ADHDWebApp.Models;
+using ADHDWebApp.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 
-namespace ADHDStudyApp.Controllers
+namespace ADHDWebApp.Controllers
 {
     public class AccountController : Controller
     {
@@ -67,10 +67,14 @@ namespace ADHDStudyApp.Controllers
                
                 return RedirectToAction("Index", "Dashboard");
             }
+            else
+            {
+                ViewBag.Error = "Incorrect Password";
+                TempData["UserEmail"] = email;
+                return View();
 
-            ViewBag.Error = "Incorrect Password";
-            TempData["UserEmail"] = email;
-            return View();
+            }
+                
         }
 
         public IActionResult Register()

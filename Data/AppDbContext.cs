@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ADHDStudyApp.Models;
+using ADHDWebApp.Models;
 
-namespace ADHDStudyApp.Data
+namespace ADHDWebApp.Data
 {
     public class AppDbContext : DbContext
     {
@@ -10,6 +10,15 @@ namespace ADHDStudyApp.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserFile> UserFiles { get; set; }
-        
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<UserFile>()
+                .HasOne(f => f.User)
+                .WithMany(u => u.Files)
+                .HasForeignKey(f => f.UserId);
+        }
     }
 }
