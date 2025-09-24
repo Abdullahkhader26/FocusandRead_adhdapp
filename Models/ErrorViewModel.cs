@@ -1,6 +1,4 @@
-using System;
-
-namespace ADHDAtudyapp.Models
+namespace ADHDWebapp.Models
 {
     public class ErrorViewModel
     {
@@ -8,4 +6,4 @@ namespace ADHDAtudyapp.Models
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
-} 
+}

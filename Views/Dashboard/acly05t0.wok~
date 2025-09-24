@@ -1,28 +1,12 @@
-@using ADHDWebApp.Models
-@{
-    Layout = null;
-    
-    // Helper function to format file size
-    string FormatFileSize(long bytes)
-    {
-        string[] sizes = { "B", "KB", "MB", "GB" };
-        double len = bytes;
-        int order = 0;
-        while (len >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            len = len / 1024;
-        }
-        return $"{len:0.##} {sizes[order]}";
-    }
-}
-
-@if (TempData["Error"] != null)
+﻿@if (TempData["Error"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         @TempData["Error"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+}
+@{
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -63,20 +47,19 @@
         <div class="right-nav d-flex align-items-center">
 
 			<!-- Relaxation Dropdown -->
-            <!-- Focus Dropdown (merged Relax + Timer, without Color Therapy) -->
             <div class="user-dropdown me-3">
-                <button class="nav-btn" onclick="toggleDropdown('focus', event)">
-                    <i class="bi bi-bullseye"></i>
-                    <span>Focus</span>
+                <button class="nav-btn" onclick="toggleDropdown('relax')">
+                    <i class="bi bi-headphones"></i>
+                    <span>Relax</span>
                 </button>
-                <div class="dropdown-menu enhanced-dropdown" id="focus-dropdown">
+
+                <div class="dropdown-menu enhanced-dropdown" id="relax-dropdown">
                     <div class="dropdown-header">
-                        <i class="bi bi-bullseye"></i>
-                        <span>Focus Tools</span>
+                        <i class="bi bi-headphones"></i>
+                        <span>Relaxation Activities</span>
                     </div>
                     <div class="dropdown-divider"></div>
 
-                    <!-- Relax items (without Color Therapy) -->
                     <div class="activity-item">
                         <div class="activity-icon">
                             <i class="bi bi-music-note-beamed"></i>
@@ -96,7 +79,6 @@
                             <div class="activity-desc">4-7-8 technique, box breathing</div>
                         </div>
                     </div>
-
                     <div class="activity-item">
                         <div class="activity-icon">
                             <i class="bi bi-puzzle"></i>
@@ -107,66 +89,68 @@
                         </div>
                     </div>
 
-                    <!-- Timer inline panel trigger inside Focus (styled like other items) -->
-                    <div class="inline-panel-host">
-                        <div class="activity-item" onclick="toggleInlinePanel('focus-timer-panel', event)" style="cursor: pointer;">
-                            <div class="activity-icon">
-                                <i class="bi bi-stopwatch"></i>
-                            </div>
-                            <div class="activity-info">
-                                <div class="activity-title">Timer</div>
-                                <div class="activity-desc">Pomodoro and focus presets</div>
-                            </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-eyedropper"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Color Therapy</div>
+                            <div class="activity-desc">Visual relaxation tools</div>
                         </div>
                     </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-center">View all activities</a>
+                </div>
+            </div>
 
-                    <!-- Timer panel positioned relative to Focus dropdown (top-left) -->
-                    <div class="dropdown-menu enhanced-dropdown inline-left-from-focus" id="focus-timer-panel">
-                        <div class="dropdown-header">
-                            <i class="bi bi-stopwatch"></i>
-                            <span>Timer</span>
-                        </div>
-                        <div class="dropdown-divider"></div>
+            <!-- Timer Dropdown -->
+            <div class="user-dropdown me-3">
+                <button class="nav-btn" onclick="toggleDropdown('timer')">
+                    <i class="bi bi-stopwatch"></i>
+                    <span>Timer</span>
+                </button>
+                <div class="dropdown-menu enhanced-dropdown" id="timer-dropdown">
+                    <div class="dropdown-header">
+                        <i class="bi bi-stopwatch"></i>
+                        <span>Timer Settings</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
 
-                        <div class="timer-options px-3">
-                            <h6>Preset Timers:</h6>
-                            <div>
-                                <span class="timer-preset active" data-minutes="25">Pomodoro (25m)</span>
-                                <span class="timer-preset" data-minutes="15">Short Break (15m)</span>
-                                <span class="timer-preset" data-minutes="5">Quick Break (5m)</span>
-                                <span class="timer-preset" data-minutes="50">Deep Focus (50m)</span>
-                            </div>
-                        </div>
-
-                        <div class="dropdown-divider"></div>
-
-                        <div class="activity-item">
-                            <div class="progress-ring">
-                                <svg width="24" height="24">
-                                    <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#e3f2fd" stroke-width="3"></circle>
-                                    <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#00bcd4" stroke-width="3" stroke-dasharray="62.8" stroke-dashoffset="31.4"></circle>
-                                </svg>
-                            </div>
-                            <div class="activity-info">
-                                <div class="activity-title">Remaining Time</div>
-                                <div class="activity-desc">25:00</div>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div class="d-flex justify-content-around p-2">
-                            <button class="btn btn-sm btn-success"><i class="bi bi-play"></i> Start</button>
-                            <button class="btn btn-sm btn-danger"><i class="bi bi-pause"></i> Pause</button>
-                            <button class="btn btn-sm btn-secondary"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+                    <div class="timer-options">
+                        <h6>Preset Timers:</h6>
+                        <div>
+                            <span class="timer-preset active" data-minutes="25">Pomodoro (25m)</span>
+                            <span class="timer-preset" data-minutes="15">Short Break (15m)</span>
+                            <span class="timer-preset" data-minutes="5">Quick Break (5m)</span>
+                            <span class="timer-preset" data-minutes="50">Deep Focus (50m)</span>
                         </div>
                     </div>
 
                     <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item text-center">All Focus Tools</a>
+
+                    <div class="activity-item">
+                        <div class="progress-ring">
+                            <svg width="24" height="24">
+                                <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#e3f2fd" stroke-width="3"></circle>
+                                <circle class="progress-circle" r="10" cx="12" cy="12" fill="transparent" stroke="#00bcd4" stroke-width="3" stroke-dasharray="62.8" stroke-dashoffset="31.4"></circle>
+                            </svg>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Remaining Time</div>
+                            <div class="activity-desc">25:00</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="d-flex justify-content-around p-2">
+                        <button class="btn btn-sm btn-success"><i class="bi bi-play"></i> Start</button>
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-pause"></i> Pause</button>
+                        <button class="btn btn-sm btn-secondary"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+                    </div>
                 </div>
             </div>
             <!-- Files Dropdown -->
             <div class="user-dropdown me-3">
-                <button class="nav-btn" onclick="toggleDropdown('files', event)">
+                <button class="nav-btn" onclick="toggleDropdown('files')">
                     <i class="bi bi-folder"></i>
                     <span>Files</span>
                 </button>
@@ -358,30 +342,31 @@
                 <div class="left-content">
                     <!-- Upload Container -->
                     <div id="upload-container" class="text-center p-4" style="display: @((ViewBag.ShowLeftPanel == true || TempData["UploadedText"] != null) ? "none" : "flex")">
-                        <div class="welcome-section mb-3">
-                            <h5 class="mb-2">Welcome, @ViewBag.FullName</h5>
+                        <div class="welcome-section mb-5">
+                            <h4 class="display-6 mb-3">Welcome, @ViewBag.FullName</h4>
+                            <p class="text-muted">Choose how you want to add your content</p>
                         </div>
 
                         <div class="upload-options">
-                            <div class="upload-card mb-1" onclick="document.getElementById('file-upload').click()">
+                            <div class="upload-card mb-3" onclick="document.getElementById('file-upload').click()">
                                 <div class="upload-icon">
-                                    <i class="bi bi-file-text"></i>
+                                    <i class="bi bi-file-text display-4"></i>
                                 </div>
-                                <h5>Upload File</h5>
-                                <p class="text-muted small">PDF, DOCX, TXT, Images (PNG/JPG/JPEG/GIF)</p>
+                                <h5>Document Upload</h5>
+                                <p class="text-muted small">Upload PDF or TXT files</p>
                             </div>
 
-                            <div class="upload-card mb-1" onclick="showMyFiles()">
+                            <div class="upload-card mb-3" onclick="document.getElementById('image-upload').click()">
                                 <div class="upload-icon">
-                                    <i class="bi bi-folder"></i>
+                                    <i class="bi bi-image display-4"></i>
                                 </div>
-                                <h5>My Files</h5>
-                                <p class="text-muted small">Open your previously uploaded files</p>
+                                <h5>Image Upload</h5>
+                                <p class="text-muted small">Upload PNG, JPG, or JPEG</p>
                             </div>
 
-                            <div class="upload-card mb-0" onclick="toggleTextInput()">
+                            <div class="upload-card" onclick="toggleTextInput()">
                                 <div class="upload-icon">
-                                    <i class="bi bi-pencil-square"></i>
+                                    <i class="bi bi-pencil-square display-4"></i>
                                 </div>
                                 <h5>Manual Input</h5>
                                 <p class="text-muted small">Type or paste your text</p>
@@ -389,60 +374,10 @@
                         </div>
 
                         <form id="uploadForm" method="post" enctype="multipart/form-data" asp-controller="Dashboard" asp-action="UploadDocument">
-                            <input type="file" id="file-upload" name="file" class="d-none" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.gif" onchange="handleFileSelection(this)">
+                            <input type="file" id="file-upload" name="file" class="d-none" accept=".txt,.docx,.pdf" onchange="handleFileSelection(this, 'Document')">
+                            <input type="file" id="image-upload" name="image" class="d-none" accept=".png,.jpg,.jpeg" onchange="handleFileSelection(this, 'Image')">
                             <div id="file-info" class="upload-info mt-4"></div>
                         </form>
-                    </div>
-
-                    <!-- Uploaded Files Section - Small and Clean -->
-                    <div id="uploaded-files-section" class="mt-1" style="display: none">
-                        <div class="uploaded-files-container">
-                            <h6 class="files-section-title mb-2">
-                                <i class="bi bi-folder-open me-2"></i>Your Files
-                            </h6>
-                            
-                            @if (ViewBag.UserFiles != null && ((List<UserFile>)ViewBag.UserFiles).Any())
-                            {
-                                <div class="files-grid">
-                                    @foreach (var file in (List<UserFile>)ViewBag.UserFiles)
-                                    {
-                                        <div class="file-card" onclick="openFile(@file.Id)" data-file-id="@file.Id">
-                                            <div class="file-icon-large">
-                                                @{
-                                                    var extension = System.IO.Path.GetExtension(file.FileName).ToLower();
-                                                    var iconClass = extension switch
-                                                    {
-                                                        ".pdf" => "bi-file-pdf text-danger",
-                                                        ".docx" => "bi-file-word text-primary",
-                                                        ".txt" => "bi-file-text text-secondary",
-                                                        ".jpg" or ".jpeg" or ".png" or ".gif" => "bi-file-image text-success",
-                                                        _ => "bi-file-earmark text-muted"
-                                                    };
-                                                }
-                                                <i class="bi @iconClass"></i>
-                                            </div>
-                                            <div class="file-name-card">@file.FileName</div>
-                                            <div class="file-meta-card">
-                                                <small class="text-muted">
-                                                    @{
-                                                        var sizeText = file.FileSize.HasValue ? FormatFileSize(file.FileSize.Value) : "Unknown size";
-                                                    }
-                                                    @sizeText
-                                                </small>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="no-files-message text-center py-3">
-                                    <i class="bi bi-folder-x text-muted mb-2" style="font-size: 2rem;"></i>
-                                    <p class="text-muted mb-1">No files uploaded yet</p>
-                                    <small class="text-muted">Upload your first file above</small>
-                                </div>
-                            }
-                        </div>
                     </div>
 
                     <!-- Manual Text Input -->
@@ -461,8 +396,29 @@
                             </button>
                         </div>
                     </div>
+                    @model IEnumerable<YourNamespace.Models.UserFile>
 
-                 
+                    <h2>Uploaded Files</h2>
+
+                    @if (!Model.Any())
+                    {
+                        <p>No files uploaded yet.</p>
+                    }
+                    else
+                    {
+                        <ul style="list-style:none; padding-left:0;">
+                            @foreach (var file in Model)
+                            {
+                                <li style="margin-bottom:8px;">
+                                    <a href="@Url.Action("DisplayFile", "User", new { fileId = file.Id })"
+                                       target="_blank"
+                                       style="text-decoration:none; color:#007bff;">
+                                        @file.FileName
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
 
                     <!-- File Display Container -->
                     <div id="file-display-container" style="display: @((ViewBag.ShowLeftPanel == true || TempData["UploadedText"] != null) ? "flex" : "none")" class="d-flex flex-column h-100 pt-2">
@@ -544,7 +500,6 @@
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>
@@ -588,19 +543,17 @@
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            overflow: visible;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 500px;
         }
 
         .left-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         #file-display-container {
@@ -1059,233 +1012,320 @@
                 .activity-item:hover .activity-title {
                     color: #0d6efd; /* العنوان يصير أزرق */
                 }
-
-        /* Uploaded Files Styles - Small and Clean */
-        #uploaded-files-section {
-            display: block;
-            visibility: visible;
-            opacity: 1;
-            margin-top: 5px;
-        }
-        
-        .uploaded-files-container {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 0;
-            min-height: 180px;
-        }
-
-        .files-section-title {
-            color: #495057;
-            font-weight: 600;
-            font-size: 1rem;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 0.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .files-grid {
-            display: flex;
-            flex-direction: column; /* vertical list */
-            gap: 0.5rem;
-            overflow: hidden; /* no horizontal scroll */
-            padding: 0.25rem 0;
-        }
-
-        .file-card {
-            display: flex;
-            flex-direction: row; /* horizontal item */
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: #ffffff;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            width: 100%;
-            min-height: 56px;
-            text-align: left;
-        }
-
-        .file-card:hover {
-            border-color: #0d6efd;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .file-icon-large {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-right: 0.75rem;
-            font-size: 1.4rem;
-        }
-
-        .file-name-card {
-            font-weight: 500;
-            color: #212529;
-            margin: 0;
-            word-break: break-word;
-            font-size: 0.95rem;
-            line-height: 1.3;
-            flex: 1 1 auto;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .file-meta-card {
-            color: #6c757d;
-            font-size: 0.75rem;
-            margin-left: 0.75rem;
-        }
-
-        .no-files-message {
-            background: #ffffff;
-            border: 1px dashed #dee2e6;
-            border-radius: 6px;
-            color: #6c757d;
-            padding: 1rem;
-            margin: 0;
-        }
-
-        .no-files-message i {
-            opacity: 0.5;
-        }
-
-        /* Ensure the files section is always visible */
-        #uploaded-files-section {
-            position: relative;
-            z-index: 10;
-        }
-
-        .files-section-title .badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        /* Upload Cards Styles */
-        .upload-card {
-            background: #ffffff;
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-card:hover {
-            border-color: #0d6efd;
-            background: #f8f9ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
-        }
-
-        .upload-icon {
-            margin-bottom: 0.75rem;
-            color: #6c757d;
-            transition: color 0.3s ease;
-        }
-
-        .upload-icon i {
-            font-size: 2rem !important;
-        }
-
-        .upload-card:hover .upload-icon {
-            color: #0d6efd;
-        }
-
-        .upload-card h5 {
-            margin-bottom: 0.25rem;
-            color: #495057;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .upload-card p {
-            margin: 0;
-            color: #6c757d;
-            font-size: 0.85rem;
-        }
-
-        /* Inline-left timer panel styles */
-        .user-dropdown.timer-inline { position: relative; }
-        .dropdown-menu.inline-left {
-            position: absolute;
-            top: 0;
-            left: auto;
-            right: calc(100% + 8px); /* place panel to the left of the button */
-            min-width: 320px;
-            max-width: 380px;
-            z-index: 1100;
-        }
-        .inline-panel-host { position: relative; }
-        .enhanced-dropdown { overflow: visible; }
-        /* Position timer panel from the Focus dropdown container */
-        #focus-dropdown { position: relative; overflow: visible; }
-        #focus-dropdown .inline-left-from-focus {
-            position: absolute;
-            top: 0;
-            right: 100%;
-            margin-right: 8px;
-            min-width: 320px;
-            max-width: 380px;
-            z-index: 1100;
-        }
-        /* Make sure topbar can show all buttons and panels */
-        .right-nav { overflow: visible; }
-        .right-nav .user-dropdown { display: inline-flex; align-items: center; position: relative; }
-        .right-nav .nav-btn { display: inline-flex; align-items: center; }
-        /* Ensure dropdown menus open below their buttons; JS may override with inline positioning */
-        .right-nav .dropdown-menu.enhanced-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            bottom: auto;
-            right: 0;
-            left: auto;
-            max-height: 70vh;
-            overflow: auto;
-            z-index: 1200;
-        }
-        /* Keep inline timer panel within viewport width */
-        #focus-dropdown .inline-left-from-focus {
-            max-height: 70vh;
-            overflow: auto;
-        }
-        /* Make sure ancestors do not clip the dropdown */
-        header, .navbar, .topbar, .nav-container { overflow: visible !important; position: relative; }
-        /* Fallback if there isn't enough space to the left: stack under Focus */
-        @@media (max-width: 1200px) {
-            #focus-dropdown .inline-left-from-focus {
-                right: 0;
-                left: 0;
-                margin-right: 0;
-            }
-        }
-        @@media (max-width: 768px) {
-            .dropdown-menu.inline-left {
-                right: 0; /* fallback on small screens */
-                left: 0;
-                min-width: auto;
-                max-width: none;
-            }
-        }
     </style>
 
     <script>
-        window.DASHBOARD_CFG = {
-            getFileContentUrl: '@Url.Action("GetFileContent", "Dashboard")'
+        // Function to toggle dropdowns
+        function toggleDropdown(id) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`${id}-dropdown`);
+
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu.id !== `${id}-dropdown`) {
+                    menu.classList.remove('show');
+                }
+            });
+
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking elsewhere
+        window.onclick = function(event) {
+            // Don't close if clicking inside a dropdown or on a dropdown toggle
+            if (event.target.closest('.dropdown-menu') || event.target.closest('.dropdown-toggle')) {
+                return;
+            }
+            
+            const dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (let i = 0; i < dropdowns.length; i++) {
+                const openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+         document.querySelectorAll('.timer-preset').forEach(preset => {
+            preset.addEventListener('click', function() {
+                document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                const minutes = this.getAttribute('data-minutes');
+                console.log(`Timer set to ${minutes} minutes`);
+
+            });
+        });
+        // Navigation functionality
+        const navLinks = document.querySelectorAll('.left-nav .nav-link');
+
+        const contentMap = {
+            summary: '<h5><strong>Summary</strong></h5><p>This is where the summary will appear...</p>',
+            flashcards: '<h5><strong>Flashcards</strong></h5><p>Generated flashcards go here.</p>',
+            workbook: '<h5><strong>Workbook</strong></h5><p>Workbook content and exercises go here.</p>',
+            quizzes: '<h5><strong>Quizzes</strong></h5><p>Questions here related to the document.</p>',
+            ai: '<h5><strong>AI Assistant</strong></h5><p>Interact with the AI here.</p>'
         };
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                const section = this.getAttribute('data-section');
+                sectionContent.innerHTML = contentMap[section] || '';
+            });
+        });
+
+        function handleFileSelection(input, type) {
+            const fileInfo = document.getElementById('file-info');
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                fileInfo.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="bi bi-${type.toLowerCase() === 'image' ? 'image' : 'file-text'} me-2"></i>
+                            <strong>${file.name}</strong> (${formatFileSize(file.size)})
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Process ${type}
+                        </button>
+                    </div>`;
+                fileInfo.classList.add('show');
+            } else {
+                fileInfo.innerHTML = '';
+                fileInfo.classList.remove('show');
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function resetUpload() {
+            const uploadContainer = document.getElementById('upload-container');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            const manualText = document.getElementById('manual-text');
+            
+            // Show upload container
+            uploadContainer.style.display = 'flex';
+            
+            // Hide other containers
+            fileDisplayContainer.style.display = 'none';
+            manualText.style.display = 'none';
+            
+            // Reset form and info
+            document.getElementById('file-info').innerHTML = '';
+            document.getElementById('file-info').classList.remove('show');
+            document.getElementById('file-upload').value = '';
+            document.getElementById('image-upload').value = '';
+        }
+
+        function toggleTextInput() {
+            const manualText = document.getElementById('manual-text');
+            const uploadContainer = document.getElementById('upload-container');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            
+            if (manualText.style.display === 'none') {
+                // Show manual text input
+                manualText.style.display = 'block';
+                // Hide other containers
+                uploadContainer.style.display = 'none';
+                fileDisplayContainer.style.display = 'none';
+            } else {
+                // Show upload container
+                uploadContainer.style.display = 'flex';
+                // Hide other containers
+                manualText.style.display = 'none';
+                fileDisplayContainer.style.display = 'none';
+            }
+        }
+
+        function submitManualText() {
+            const textArea = document.querySelector('#manual-text textarea');
+            const contentDisplay = document.getElementById('content-display');
+            const manualText = document.getElementById('manual-text');
+            const fileDisplayContainer = document.getElementById('file-display-container');
+
+            if (textArea.value.trim() !== '') {
+                document.getElementById('display-filename').textContent = 'Manual Text';
+                contentDisplay.textContent = textArea.value;
+                
+                // Hide manual text input
+                manualText.style.display = 'none';
+                // Show file display container
+                fileDisplayContainer.style.display = 'flex';
+                
+                // Update word count and format text
+                updateWordCount();
+                formatDisplayedText();
+            } else {
+                alert('Please enter some text before submitting.');
+            }
+        }
+
+        function formatDisplayedText() {
+            const contentDisplay = document.getElementById('content-display');
+            if (contentDisplay) {
+                let text = contentDisplay.textContent || contentDisplay.innerText;
+                if (text) {
+                    // Replace multiple newlines with paragraph breaks
+                    text = text.replace(/\n\s*\n/g, '</p><p>');
+                    // Replace single newlines with line breaks
+                    text = text.replace(/\n/g, '<br>');
+                    // Wrap in paragraphs if not already wrapped
+                    if (!text.startsWith('<p>')) {
+                        text = '<p>' + text + '</p>';
+                    }
+                    contentDisplay.innerHTML = text;
+                }
+            }
+        }
+
+        function formatTextWithLineBreaks(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+
+        function showUploadedFile(filename, content) {
+            const fileDisplay = document.getElementById('file-display-container');
+            const fileNameDisplay = document.getElementById('display-filename');
+            const contentDisplay = document.getElementById('content-display');
+
+            fileNameDisplay.textContent = filename;
+            contentDisplay.innerHTML = formatTextWithLineBreaks(content);
+            fileDisplay.style.display = 'flex';
+            document.getElementById('upload-container').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileDisplayContainer = document.getElementById('file-display-container');
+            const contentDisplay = document.getElementById('content-display');
+            
+            if (fileDisplayContainer.style.display === 'flex' && contentDisplay) {
+                formatDisplayedText();
+                updateWordCount();
+            }
+        });
+
+        let currentFontSize = 1.1;
+        let currentLineHeight = 1.8;
+        let isDarkMode = false;
+        let isReadingMode = false;
+
+        function adjustFontSize(action) {
+            const contentText = document.querySelector('.content-text');
+            if (action === 'increase' && currentFontSize < 1.5) {
+                currentFontSize += 0.1;
+            } else if (action === 'decrease' && currentFontSize > 0.8) {
+                currentFontSize -= 0.1;
+            }
+            contentText.style.fontSize = `${currentFontSize}rem`;
+        }
+
+        function toggleLineHeight() {
+            const contentText = document.querySelector('.content-text');
+            currentLineHeight = currentLineHeight === 1.8 ? 2.2 : 1.8;
+            contentText.style.lineHeight = currentLineHeight;
+        }
+
+        function updateWordCount() {
+            const contentDisplay = document.getElementById('content-display');
+            const wordCountElement = document.getElementById('word-count');
+            if (contentDisplay && wordCountElement) {
+                const text = contentDisplay.textContent || '';
+                const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                
+                // Animate the word count
+                const currentCount = parseInt(wordCountElement.textContent.split(' ')[0]) || 0;
+                animateNumber(currentCount, wordCount, (count) => {
+                    wordCountElement.textContent = `<i class="bi bi-hash me-1"></i>${count} words`;
+                });
+                updateReadTime(wordCount);
+            }
+        }
+
+        function updateReadTime(wordCount) {
+            const readTimeElement = document.getElementById('read-time');
+            const minutes = Math.ceil(wordCount / 200); 
+            readTimeElement.textContent = `<i class="bi bi-clock me-1"></i>${minutes} min read`;
+        }
+
+        function animateNumber(start, end, callback) {
+            const duration = 1000;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const current = Math.floor(start + (end - start) * progress);
+                callback(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        function downloadContent() {
+            const content = document.getElementById('content-display').textContent;
+            const filename = document.getElementById('display-filename').textContent;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function shareContent() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.getElementById('display-filename').textContent,
+                    text: document.getElementById('content-display').textContent,
+                }).catch(console.error);
+            }
+        }
+
+        function toggleDarkMode() {
+            const contentWrapper = document.getElementById('content-wrapper');
+            isDarkMode = !isDarkMode;
+            contentWrapper.classList.toggle('dark-mode');
+        }
+
+        function toggleReadingMode() {
+            const contentDisplay = document.getElementById('content-display');
+            isReadingMode = !isReadingMode;
+            contentDisplay.classList.toggle('reading-mode');
+        }
+
+        function setTextAlign(alignment) {
+            const contentDisplay = document.getElementById('content-display');
+            contentDisplay.style.textAlign = alignment;
+            
+            // Update active state of alignment buttons
+            document.querySelectorAll('.content-toolbar .btn-group:first-child .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
     </script>
-    <script src="~/js/dashboard.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/pomodoro.js"></script>

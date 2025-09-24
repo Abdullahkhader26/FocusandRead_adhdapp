@@ -447,10 +447,10 @@ html, body {
     transition: all 0.2s;
 }
 
-    .dropdown-item:hover {
+.dropdown-item:hover {
         background-color: #f5f5f5;
         color: #00bcd4;
-    }
+ }
 
 .dropdown-divider {
     height: 1px;
@@ -473,11 +473,10 @@ html, body {
     color: #00bcd4;
     display: flex;
     align-items: center;
+    margin-right: 8px;
 }
 
-    .dropdown-header i {
-        margin-right: 8px;
-    }
+   
 
 .activity-item {
     display: flex;
@@ -600,16 +599,10 @@ html, body {
     .right-side {
         width: 100%;
         margin-bottom: 1rem;
+        flex: 1;
     }
 }
 
-.left-side {
-    flex: 1;
-}
-
-.right-side {
-    flex: 1;
-}
 
 .upload-options {
     display: grid;

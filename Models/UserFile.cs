@@ -1,30 +1,32 @@
-﻿using System;
+﻿
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADHDStudyApp.Models
+namespace ADHDWebApp.Models
 {
     public class UserFile
     {
+        [Key]
         public int Id { get; set; }
 
-        [Required]
-        public string FileName { get; set; } = string.Empty;
         
-        [Required]
-        public string FilePath { get; set; } = string.Empty;
+        [MaxLength(255)]
+        public required string FileName { get; set; }   // اسم الملف الأصلي
+
         
-        public long Filesize { get; set; }
-        
-        [Required]
-        public string FileType { get; set; } = string.Empty;
-        
-        public DateTime UploadDate { get; set; } = DateTime.Now;
-        
-        [Required]
-        public string Content { get; set; } = string.Empty;
-        
+        public required string FilePath { get; set; }   // مسار أو اسم الملف المخزن
+
+        [MaxLength(100)]
+        public required string ContentType { get; set; }  // نوع الملف (PDF, Word, ...)
+
+        public long? FileSize { get; set; }     // 🔑 حجم الملف بالبايت
+
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
+
+        // 🔑 المفتاح الخارجي لربط الملف بالمستخدم
+        [ForeignKey("User")]
         public int UserId { get; set; }
-        
-        public User? User { get; set; }
+
+        public virtual required User User { get; set; }
     }
 }

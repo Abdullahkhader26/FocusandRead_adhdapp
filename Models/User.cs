@@ -1,28 +1,30 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-
-namespace ADHDStudyApp.Models
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
+namespace ADHDWebApp.Models
 {
     public class User
     {
         [Key]
         public int Id { get; set; }
 
-        [Required]
+        
         [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
-        public string Password { get; set; }
-
-        public string FullName { get; set; }
+        public required string Email { get; set; }
+        
+        public required string Password { get; set; }
+        
+        public required string FullName { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; }
+        
+        public required string Role { get; set; }
 
-        public string Role { get; set; } 
-        public bool? HasADHD { get; set; } 
+        public bool? HasADHD { get; set; }
 
-
+        
+        public virtual ICollection<UserFile> Files { get; set; } = new List<UserFile>();
     }
 }
