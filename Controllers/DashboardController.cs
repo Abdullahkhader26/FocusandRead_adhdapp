@@ -75,6 +75,54 @@ namespace ADHDWebApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
         }
+
+        [HttpPost]
+        [Route("Dashboard/DeleteFiles")]
+        public async Task<IActionResult> DeleteFiles([FromBody] List<int> ids)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("UserEmail");
+                if (string.IsNullOrEmpty(userEmail))
+                    return Json(new { success = false, error = "Not logged in" });
+
+                if (ids == null || ids.Count == 0)
+                    return Json(new { success = false, error = "No files selected" });
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+                if (user == null)
+                    return Json(new { success = false, error = "User not found" });
+
+                // Fetch files that belong to this user and are in the selected IDs
+                var files = await _context.UserFiles
+                    .Where(f => f.UserId == user.Id && ids.Contains(f.Id))
+                    .ToListAsync();
+
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", file.FilePath.TrimStart('/'));
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            System.IO.File.Delete(fullPath);
+                        }
+                        _context.UserFiles.Remove(file);
+                    }
+                    catch (Exception)
+                    {
+                        // continue with others; we can report partial failures if needed
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, deleted = files.Select(f => f.Id).ToList() });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
       
 
         [HttpPost]

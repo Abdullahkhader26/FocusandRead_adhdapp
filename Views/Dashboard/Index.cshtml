@@ -197,17 +197,17 @@
                         </form>
                     </div>
 
-                    <div class="activity-item">
+                    <div class="activity-item" onclick="showMyFiles();" style="cursor: pointer;">
                         <div class="activity-icon">
                             <i class="bi bi-collection"></i>
                         </div>
                         <div class="activity-info">
-                            <div class="activity-title">My Documents</div>
+                            <div class="activity-title">My Files</div>
                             <div class="activity-desc">12 files, 3 folders</div>
                         </div>
                     </div>
 
-                    <div class="activity-item">
+                    <div class="activity-item" onclick="showRecentFiles();" style="cursor: pointer;">
                         <div class="activity-icon">
                             <i class="bi bi-stars"></i>
                         </div>
@@ -228,7 +228,7 @@
                     </div>
 
                     <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item text-center">Open File Manager</a>
+                    <a href="#" class="dropdown-item text-center" onclick="showMyFiles(); return false;">Open File Manager</a>
                 </div>
             </div>
 
@@ -296,26 +296,43 @@
             <div class="user-dropdown me-3 combined-icon">
                 <button class="nav-btn" onclick="toggleDropdown('network-notifications')">
                     <i class="bi bi-people"></i>
-                    <span class="notification-badge">2</span> <!-- مجموع العناصر الجديدة -->
+                    <span class="notification-badge">2</span>
                 </button>
-                <div class="dropdown-menu" id="network-notifications-dropdown">
-                    <!-- Notifications -->
-                    <div class="dropdown-header"><strong>Notifications</strong></div>
-                    <div class="dropdown-item"><strong>Reminder</strong><br>Test tomorrow at 10 AM</div>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item text-center">View All Notifications</a>
-                    <div class="dropdown-divider"></div>
+                <div class="dropdown-menu enhanced-dropdown" id="network-notifications-dropdown">
+                    <!-- Quick Actions as list (same design as Files) -->
+                    <div class="activity-item">
+                        <div class="activity-icon text-primary">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Add Network</div>
+                            <div class="activity-desc">Find classmates and add them</div>
+                        </div>
+                    </div>
 
-                    <!-- Network -->
-                    <div class="dropdown-header"><strong>Network</strong></div>
-                    <div class="dropdown-item">
-                        <i class="bi bi-person-plus-fill text-primary me-2"></i>
-                        Add Network
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Recent Notifications</div>
+                            <div class="activity-desc">Your latest updates at a glance</div>
+                        </div>
                     </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon text-success">
+                            <i class="bi bi-person-heart"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Invite Friend</div>
+                            <div class="activity-desc">Send an invite link</div>
+                        </div>
+                    </div>
+
                     <div class="dropdown-divider"></div>
-                    <div class="dropdown-item">
-                        <strong>Mike Johnson</strong><br>Sent you a message
-                    </div>
+                    <!-- Only these links should remain below Invite Friend -->
+                    <a href="#" class="dropdown-item text-center">View All Notifications</a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item text-center">View All Network</a>
                 </div>
@@ -398,8 +415,20 @@
                     <div id="uploaded-files-section" class="mt-1" style="display: none">
                         <div class="uploaded-files-container">
                             <h6 class="files-section-title mb-2">
-                                <i class="bi bi-folder-open me-2"></i>Your Files
+                                <i class="bi bi-folder-open me-2"></i><span id="uploaded-files-title-text">Your Files</span>
                             </h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="setLeftView('upload')">
+                                        <i class="bi bi-arrow-left"></i> Back
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteSelectedFiles()">
+                                        <i class="bi bi-trash"></i> Delete Selected
+                                    </button>
+                                </div>
+                            </div>
                             
                             @if (ViewBag.UserFiles != null && ((List<UserFile>)ViewBag.UserFiles).Any())
                             {
@@ -407,6 +436,9 @@
                                     @foreach (var file in (List<UserFile>)ViewBag.UserFiles)
                                     {
                                         <div class="file-card" onclick="openFile(@file.Id)" data-file-id="@file.Id">
+                                            <div class="form-check" style="position: absolute; top: 8px; left: 8px;">
+                                                <input class="form-check-input file-select-checkbox" type="checkbox" data-file-id="@file.Id" onclick="event.stopPropagation();" onchange="onFileCheckboxChange(this)">
+                                            </div>
                                             <div class="file-icon-large">
                                                 @{
                                                     var extension = System.IO.Path.GetExtension(file.FileName).ToLower();

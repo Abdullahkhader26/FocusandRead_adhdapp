@@ -1,6 +1,8 @@
 // Configuration
 const DASHBOARD_CFG = window.DASHBOARD_CFG || {};
 const GET_FILE_CONTENT_URL = DASHBOARD_CFG.getFileContentUrl || '/Dashboard/GetFileContent';
+// Track selected files for deletion
+const SELECTED_FILE_IDS = new Set();
 
 // Function to toggle dropdowns
 // Store original parent anchors so we can restore when hiding
@@ -13,6 +15,59 @@ function toggleDropdown(id, evt) {
         if (menu.id !== `${id}-dropdown`) {
             menu.classList.remove('show');
         }
+
+// Selection checkbox handler (global)
+function onFileCheckboxChange(checkbox) {
+    const idAttr = checkbox.getAttribute('data-file-id');
+    const id = idAttr ? parseInt(idAttr) : NaN;
+    if (Number.isNaN(id)) return;
+
+    const card = checkbox.closest('.file-card');
+    if (checkbox.checked) {
+        SELECTED_FILE_IDS.add(id);
+        if (card) card.classList.add('selected');
+    } else {
+        SELECTED_FILE_IDS.delete(id);
+        if (card) card.classList.remove('selected');
+    }
+}
+
+// Delete selected files (global)
+function deleteSelectedFiles() {
+    if (SELECTED_FILE_IDS.size === 0) {
+        alert('Please select at least one file to delete.');
+        return;
+    }
+    if (!confirm('Delete selected file(s)? This action cannot be undone.')) {
+        return;
+    }
+
+    const ids = Array.from(SELECTED_FILE_IDS);
+    fetch('/Dashboard/DeleteFiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(ids)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.error || 'Delete failed');
+            // Remove deleted cards from DOM
+            ids.forEach(id => {
+                const card = document.querySelector(`.file-card[data-file-id="${id}"]`);
+                if (card && card.parentElement) card.parentElement.removeChild(card);
+            });
+            SELECTED_FILE_IDS.clear();
+            const grid = document.querySelector('.files-grid');
+            if (!grid || grid.children.length === 0) {
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            console.error('Delete error:', err);
+            alert('Failed to delete files.');
+        });
+}
     });
     
     const willShow = !dropdown.classList.contains('show');
@@ -145,11 +200,29 @@ function setLeftView(mode) {
     if (fileDisplayContainer) fileDisplayContainer.style.display = (mode === 'viewer') ? 'flex' : 'none';
     if (manualText) manualText.style.display = (mode === 'manual') ? 'block' : 'none';
     if (uploadedSection) uploadedSection.style.display = (mode === 'files') ? 'block' : 'none';
+
+    // Set a mode class on body to allow CSS to enforce visibility
+    const body = document.body;
+    if (body) {
+        body.classList.remove('mode-upload','mode-viewer','mode-manual','mode-files');
+        body.classList.add(`mode-${mode}`);
+    }
 }
 
 // Show the files list as the main view in the left section
 function showMyFiles() {
     setLeftView('files');
+    const fileDisplayContainer = document.getElementById('file-display-container');
+    const uploadedSection = document.getElementById('uploaded-files-section');
+    const uploadContainer = document.getElementById('upload-container');
+    const titleEl = document.getElementById('uploaded-files-title-text');
+    if (fileDisplayContainer) fileDisplayContainer.style.display = 'none';
+    if (uploadContainer) uploadContainer.style.display = 'none';
+    if (uploadedSection) uploadedSection.style.display = 'block';
+    // Reset any filtering
+    const grid = uploadedSection ? uploadedSection.querySelector('.files-grid') : null;
+    if (grid) Array.from(grid.children).forEach(card => card.style.display = '');
+    if (titleEl) titleEl.textContent = 'Your Files';
 }
 
 // Close dropdowns when clicking elsewhere
@@ -168,14 +241,109 @@ window.onclick = function (event) {
     }
 }
 
+// ======= Focus Timer Logic =======
+const TIMER = {
+    durationMs: 25 * 60 * 1000,
+    remainingMs: 25 * 60 * 1000,
+    running: false,
+    intervalId: null,
+    endTs: null
+};
+
+function formatMMSS(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+function getRemainingTimeEl() {
+    try {
+        const panel = document.getElementById('focus-timer-panel');
+        if (!panel) return null;
+        // Find the item whose title text is 'Remaining Time'
+        const titles = panel.querySelectorAll('.activity-title');
+        for (const t of titles) {
+            if ((t.textContent || '').trim().toLowerCase() === 'remaining time') {
+                const desc = t.parentElement?.querySelector('.activity-desc');
+                if (desc) return desc;
+            }
+        }
+        // Fallback: first .activity-desc inside panel
+        return panel.querySelector('.activity-desc');
+    } catch { return null; }
+}
+
+function updateTimerDisplay() {
+    const el = getRemainingTimeEl();
+    if (el) el.textContent = formatMMSS(TIMER.remainingMs);
+}
+
+function stopTimerInterval() {
+    if (TIMER.intervalId) {
+        clearInterval(TIMER.intervalId);
+        TIMER.intervalId = null;
+    }
+}
+
+function startTimer() {
+    if (TIMER.running) return;
+    if (TIMER.remainingMs <= 0) TIMER.remainingMs = TIMER.durationMs;
+    TIMER.running = true;
+    TIMER.endTs = Date.now() + TIMER.remainingMs;
+    stopTimerInterval();
+    TIMER.intervalId = setInterval(() => {
+        const now = Date.now();
+        TIMER.remainingMs = Math.max(0, TIMER.endTs - now);
+        updateTimerDisplay();
+        if (TIMER.remainingMs <= 0) {
+            stopTimerInterval();
+            TIMER.running = false;
+        }
+    }, 250);
+}
+
+function pauseTimer() {
+    if (!TIMER.running) return;
+    stopTimerInterval();
+    TIMER.running = false;
+    TIMER.remainingMs = Math.max(0, TIMER.endTs - Date.now());
+    updateTimerDisplay();
+}
+
+function resetTimer() {
+    stopTimerInterval();
+    TIMER.running = false;
+    TIMER.remainingMs = TIMER.durationMs;
+    updateTimerDisplay();
+}
+
+// Presets
 document.querySelectorAll('.timer-preset').forEach(preset => {
     preset.addEventListener('click', function () {
         document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('active'));
         this.classList.add('active');
-        const minutes = this.getAttribute('data-minutes');
-        console.log(`Timer set to ${minutes} minutes`);
-
+        const minutes = parseInt(this.getAttribute('data-minutes')) || 25;
+        TIMER.durationMs = minutes * 60 * 1000;
+        TIMER.remainingMs = TIMER.durationMs;
+        stopTimerInterval();
+        TIMER.running = false;
+        updateTimerDisplay();
     });
+});
+
+// Bind Start/Pause/Reset buttons inside the timer panel
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize display
+    updateTimerDisplay();
+    const panel = document.getElementById('focus-timer-panel');
+    if (!panel) return;
+    const startBtn = panel.querySelector('button .bi-play')?.closest('button');
+    const pauseBtn = panel.querySelector('button .bi-pause')?.closest('button');
+    const resetBtn = panel.querySelector('button .bi-arrow-clockwise')?.closest('button');
+    if (startBtn) startBtn.addEventListener('click', (e) => { e.stopPropagation(); startTimer(); });
+    if (pauseBtn) pauseBtn.addEventListener('click', (e) => { e.stopPropagation(); pauseTimer(); });
+    if (resetBtn) resetBtn.addEventListener('click', (e) => { e.stopPropagation(); resetTimer(); });
 });
 
 // Navigation functionality
@@ -496,6 +664,8 @@ function openFile(fileId) {
                 if (typeof updateWordCount === 'function') {
                     updateWordCount();
                 }
+                // Track as recent
+                try { addRecentFile(fileId, data.fileName); } catch (_) { }
             }
         })
         .catch(error => {
@@ -504,6 +674,109 @@ function openFile(fileId) {
                 fileNameDisplay.textContent = 'Error Loading File';
                 contentDisplay.innerHTML = `<div class="text-center p-4 text-danger"><i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><p class="mt-2">${error.message || 'Failed to load file content'}</p></div>`;
             }
+        });
+}
+
+// ===== Recent files (localStorage) =====
+const RECENT_KEY = 'adhd_recent_files';
+const RECENT_MAX = 10;
+
+function getRecentFiles() {
+    try {
+        const raw = localStorage.getItem(RECENT_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(arr)) return arr;
+    } catch (_) { }
+    return [];
+}
+
+function saveRecentFiles(list) {
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch (_) { }
+}
+
+function addRecentFile(id, name) {
+    const now = Date.now();
+    let list = getRecentFiles().filter(x => x && typeof x.id === 'number');
+    // Remove if exists
+    list = list.filter(x => x.id !== id);
+    // Add to front
+    list.unshift({ id, name, ts: now });
+    // Trim
+    if (list.length > RECENT_MAX) list = list.slice(0, RECENT_MAX);
+    saveRecentFiles(list);
+}
+
+// Show only recent files in the left list
+function showRecentFiles() {
+    setLeftView('files');
+    const uploadedSection = document.getElementById('uploaded-files-section');
+    const grid = uploadedSection ? uploadedSection.querySelector('.files-grid') : null;
+    const titleEl = document.getElementById('uploaded-files-title-text');
+    if (titleEl) titleEl.textContent = 'Your Recent Files';
+    if (!grid) return;
+    const recent = getRecentFiles();
+    const recentIds = new Set(recent.map(r => r.id));
+    // If no recent, show all
+    if (recentIds.size === 0) {
+        Array.from(grid.children).forEach(card => card.style.display = '');
+        return;
+    }
+    Array.from(grid.children).forEach(card => {
+        const idAttr = card.getAttribute('data-file-id');
+        const id = idAttr ? parseInt(idAttr) : NaN;
+        card.style.display = recentIds.has(id) ? '' : 'none';
+    });
+}
+
+// Global: handle selection checkbox on file cards
+function onFileCheckboxChange(checkbox) {
+    const idAttr = checkbox.getAttribute('data-file-id');
+    const id = idAttr ? parseInt(idAttr) : NaN;
+    if (Number.isNaN(id)) return;
+
+    const card = checkbox.closest('.file-card');
+    if (checkbox.checked) {
+        SELECTED_FILE_IDS.add(id);
+        if (card) card.classList.add('selected');
+    } else {
+        SELECTED_FILE_IDS.delete(id);
+        if (card) card.classList.remove('selected');
+    }
+}
+
+// Global: delete selected files
+function deleteSelectedFiles() {
+    if (SELECTED_FILE_IDS.size === 0) {
+        alert('Please select at least one file to delete.');
+        return;
+    }
+    if (!confirm('Delete selected file(s)? This action cannot be undone.')) {
+        return;
+    }
+
+    const ids = Array.from(SELECTED_FILE_IDS);
+    fetch('/Dashboard/DeleteFiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(ids)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.error || 'Delete failed');
+            ids.forEach(id => {
+                const card = document.querySelector(`.file-card[data-file-id="${id}"]`);
+                if (card && card.parentElement) card.parentElement.removeChild(card);
+            });
+            SELECTED_FILE_IDS.clear();
+            const grid = document.querySelector('.files-grid');
+            if (!grid || grid.children.length === 0) {
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            console.error('Delete error:', err);
+            alert('Failed to delete files.');
         });
 }
 
