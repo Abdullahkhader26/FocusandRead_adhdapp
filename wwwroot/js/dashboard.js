@@ -1,75 +1,41 @@
-// Configuration
+/**
+ * Dashboard configuration and utility functions
+ */
+
+/**
+ * Application configuration object
+ * @type {Object}
+ */
 const DASHBOARD_CFG = window.DASHBOARD_CFG || {};
-const GET_FILE_CONTENT_URL = DASHBOARD_CFG.getFileContentUrl || '/Dashboard/GetFileContent';
-// Track selected files for deletion
+
+/**
+ * Set of selected file IDs for batch operations
+ * @type {Set<number>}
+ */
 const SELECTED_FILE_IDS = new Set();
 
-// Function to toggle dropdowns
-// Store original parent anchors so we can restore when hiding
+/**
+ * Dropdown positioning anchors for restoration when hiding
+ * @type {Object}
+ */
 const DROPDOWN_ANCHORS = {}; // key: `${id}-dropdown` => parentElement
+
+/**
+ * Toggles dropdown visibility with smart positioning
+ * @param {string} id - The dropdown ID to toggle
+ * @param {Event} evt - The triggering event for positioning
+ */
 function toggleDropdown(id, evt) {
     if (evt) evt.stopPropagation();
     const dropdown = document.getElementById(`${id}-dropdown`);
-    
+    if (!dropdown) return;
+
     document.querySelectorAll('.dropdown-menu').forEach(menu => {
         if (menu.id !== `${id}-dropdown`) {
             menu.classList.remove('show');
         }
-
-// Selection checkbox handler (global)
-function onFileCheckboxChange(checkbox) {
-    const idAttr = checkbox.getAttribute('data-file-id');
-    const id = idAttr ? parseInt(idAttr) : NaN;
-    if (Number.isNaN(id)) return;
-
-    const card = checkbox.closest('.file-card');
-    if (checkbox.checked) {
-        SELECTED_FILE_IDS.add(id);
-        if (card) card.classList.add('selected');
-    } else {
-        SELECTED_FILE_IDS.delete(id);
-        if (card) card.classList.remove('selected');
-    }
-}
-
-// Delete selected files (global)
-function deleteSelectedFiles() {
-    if (SELECTED_FILE_IDS.size === 0) {
-        alert('Please select at least one file to delete.');
-        return;
-    }
-    if (!confirm('Delete selected file(s)? This action cannot be undone.')) {
-        return;
-    }
-
-    const ids = Array.from(SELECTED_FILE_IDS);
-    fetch('/Dashboard/DeleteFiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(ids)
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) throw new Error(data.error || 'Delete failed');
-            // Remove deleted cards from DOM
-            ids.forEach(id => {
-                const card = document.querySelector(`.file-card[data-file-id="${id}"]`);
-                if (card && card.parentElement) card.parentElement.removeChild(card);
-            });
-            SELECTED_FILE_IDS.clear();
-            const grid = document.querySelector('.files-grid');
-            if (!grid || grid.children.length === 0) {
-                window.location.reload();
-            }
-        })
-        .catch(err => {
-            console.error('Delete error:', err);
-            alert('Failed to delete files.');
-        });
-}
     });
-    
+
     const willShow = !dropdown.classList.contains('show');
     dropdown.classList.toggle('show');
 
@@ -143,26 +109,26 @@ function toggleInlinePanel(panelId, event) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
 
-    // Close other inline panels
-    document.querySelectorAll('.dropdown-menu.inline-left.show, .dropdown-menu.inline-left-from-focus.show').forEach(p => {
-        if (p.id !== panelId) p.classList.remove('show');
-    });
+    // Close other inline panels (both focus and network types)
+    document.querySelectorAll('.dropdown-menu.inline-left.show, .dropdown-menu.inline-left-from-focus.show, .dropdown-menu.inline-left-from-network.show')
+        .forEach(p => { if (p.id !== panelId) p.classList.remove('show'); });
 
     const willShow = !panel.classList.contains('show');
     panel.classList.toggle('show');
 
-    // If showing, position panel relative to the Focus dropdown within viewport
+    // If showing, position panel relative to its owning dropdown within viewport
     if (willShow && panel.classList.contains('show')) {
-        const focusDropdown = document.getElementById('focus-dropdown');
-        if (focusDropdown) {
-            // Ensure the main Focus dropdown stays open
-            if (!focusDropdown.classList.contains('show')) {
-                focusDropdown.classList.add('show');
-            }
-            const rect = focusDropdown.getBoundingClientRect();
+        // Determine owner dropdown by panel type
+        const isNetwork = panel.classList.contains('inline-left-from-network');
+        const ownerId = isNetwork ? 'network-notifications-dropdown' : 'focus-dropdown';
+        const owner = document.getElementById(ownerId);
+        if (owner) {
+            // Ensure the owner dropdown stays open
+            if (!owner.classList.contains('show')) owner.classList.add('show');
+
+            const rect = owner.getBoundingClientRect();
             panel.style.position = 'fixed';
             panel.style.top = `${Math.max(8, rect.top)}px`;
-            // Fixed width to compute left position safely
             const panelWidth = 360;
             const desiredLeft = rect.left - panelWidth - 8; // to the left of dropdown
             const left = Math.max(8, Math.min(desiredLeft, window.innerWidth - panelWidth - 8));
@@ -348,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Navigation functionality
 const navLinks = document.querySelectorAll('.left-nav .nav-link');
+const sectionContent = document.getElementById('section-content');
 
 const contentMap = {
     summary: '<h5><strong>Summary</strong></h5><p>This is where the summary will appear...</p>',
@@ -522,7 +489,7 @@ function updateWordCount() {
         // Animate the word count
         const currentCount = parseInt(wordCountElement.textContent.split(' ')[0]) || 0;
         animateNumber(currentCount, wordCount, (count) => {
-            wordCountElement.textContent = `<i class="bi bi-hash me-1"></i>${count} words`;
+            wordCountElement.innerHTML = `<i class="bi bi-hash me-1"></i>${count} words`;
         });
         updateReadTime(wordCount);
     }
@@ -531,7 +498,7 @@ function updateWordCount() {
 function updateReadTime(wordCount) {
     const readTimeElement = document.getElementById('read-time');
     const minutes = Math.ceil(wordCount / 200);
-    readTimeElement.textContent = `<i class="bi bi-clock me-1"></i>${minutes} min read`;
+    readTimeElement.innerHTML = `<i class="bi bi-clock me-1"></i>${minutes} min read`;
 }
 
 function animateNumber(start, end, callback) {
@@ -593,13 +560,16 @@ function toggleReadingMode() {
 
 function setTextAlign(alignment) {
     const contentDisplay = document.getElementById('content-display');
-    contentDisplay.style.textAlign = alignment;
+    if (contentDisplay) contentDisplay.style.textAlign = alignment;
 
     // Update active state of alignment buttons
-    document.querySelectorAll('.content-toolbar .btn-group:first-child .btn').forEach(btn => {
+    document.querySelectorAll('.controls-bar .btn-group:first-child .btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.currentTarget.classList.add('active');
+    // Find the button by its onclick signature
+    const selector = `.controls-bar .btn-group:first-child button[onclick="setTextAlign('${alignment}')"]`;
+    const btn = document.querySelector(selector);
+    if (btn) btn.classList.add('active');
 }
 
 // Function to open uploaded files
@@ -617,7 +587,7 @@ function openFile(fileId) {
     }
 
     // Make AJAX call to get file content
-    const url = `${GET_FILE_CONTENT_URL}?fileId=${fileId}`;
+    const url = `${(window.DASHBOARD_CFG && window.DASHBOARD_CFG.getFileContentUrl ? window.DASHBOARD_CFG.getFileContentUrl : '/Dashboard/GetFileContent')}?fileId=${fileId}`;
     fetch(url, {
         method: 'GET',
         headers: {
@@ -715,16 +685,42 @@ function showRecentFiles() {
     if (titleEl) titleEl.textContent = 'Your Recent Files';
     if (!grid) return;
     const recent = getRecentFiles();
-    const recentIds = new Set(recent.map(r => r.id));
-    // If no recent, show all
-    if (recentIds.size === 0) {
+    // If no recent, show all (fallback)
+    if (!Array.isArray(recent) || recent.length === 0) {
         Array.from(grid.children).forEach(card => card.style.display = '');
         return;
     }
+
+    // Sort recent by timestamp desc just in case
+    const sorted = [...recent]
+        .filter(r => r && typeof r.id === 'number')
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+    // Build a map from file id to card element
+    const cardMap = new Map();
     Array.from(grid.children).forEach(card => {
         const idAttr = card.getAttribute('data-file-id');
         const id = idAttr ? parseInt(idAttr) : NaN;
-        card.style.display = recentIds.has(id) ? '' : 'none';
+        if (!Number.isNaN(id)) {
+            cardMap.set(id, card);
+        }
+    });
+
+    // Reorder DOM: append recent cards in sorted order and show them
+    sorted.forEach(item => {
+        const card = cardMap.get(item.id);
+        if (card) {
+            card.style.display = '';
+            // Append moves the node to the end, effectively reordering
+            grid.appendChild(card);
+        }
+    });
+
+    // Hide non-recent cards
+    cardMap.forEach((card, id) => {
+        if (!sorted.find(r => r.id === id)) {
+            card.style.display = 'none';
+        }
     });
 }
 
@@ -788,3 +784,513 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// ===== Network/Friend Request Functions =====
+
+/**
+ * Unified friend request function that handles both modal and inline forms
+ * @param {Object} config - Configuration object
+ * @param {string} config.inputId - ID of the input element
+ * @param {string} config.feedbackId - ID of the feedback element
+ * @param {string} config.buttonId - ID of the submit button
+ * @param {string} config.modalId - ID of the modal to close on success (optional)
+ * @param {string} config.panelId - ID of the panel to toggle on success (optional)
+ * @param {boolean} config.enableSearch - Whether to enable user search (default: false)
+ */
+function sendFriendRequest(config) {
+    const input = document.getElementById(config.inputId);
+    const feedback = document.getElementById(config.feedbackId);
+    const button = document.getElementById(config.buttonId);
+
+    if (!input) {
+        console.error(`Friend request: input element '${config.inputId}' not found`);
+        return;
+    }
+
+    const val = (input.value || '').trim();
+    const id = parseInt(val, 10);
+
+    if (!val || (Number.isNaN(id) && val.length < 2)) {
+        if (feedback) {
+            feedback.textContent = 'Please enter a valid User ID or start typing a name to search.';
+            feedback.className = 'small text-danger';
+        }
+        return;
+    }
+
+    (async () => {
+        try {
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Sending...';
+            }
+            if (feedback) {
+                feedback.textContent = '';
+                feedback.className = 'small';
+            }
+
+            const response = await fetch('/Friends/Send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ addresseeId: id })
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                const msg = data?.error || `Request failed with status ${response.status}`;
+                throw new Error(msg);
+            }
+
+            if (!data || data.success !== true) {
+                const msg = (data && data.error) ? data.error : 'Request failed';
+                throw new Error(msg);
+            }
+
+            if (feedback) {
+                feedback.textContent = 'Request sent successfully.';
+                feedback.className = 'small text-success';
+            }
+            if (button) button.textContent = 'Sent';
+
+            // Handle success callback
+            if (config.modalId) {
+                setTimeout(() => {
+                    try {
+                        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById(config.modalId));
+                        modal.hide();
+                    } catch { }
+                }, 700);
+            } else if (config.panelId) {
+                setTimeout(() => {
+                    try {
+                        toggleInlinePanel(config.panelId);
+                    } catch { }
+                }, 700);
+            }
+
+        } catch (err) {
+            console.error('Friend request error:', err);
+            if (feedback) {
+                feedback.textContent = err?.message || 'Failed to send request';
+                feedback.className = 'small text-danger';
+            }
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Send Request';
+            }
+        }
+    })();
+}
+
+// Modal friend request handler
+function sendFriendRequestModal() {
+    sendFriendRequest({
+        inputId: 'addresseeIdInput',
+        feedbackId: 'add-network-feedback',
+        buttonId: 'send-friend-request-btn',
+        modalId: 'addNetworkModal',
+        enableSearch: true
+    });
+}
+
+// Inline friend request handler
+function sendFriendRequestInline() {
+    sendFriendRequest({
+        inputId: 'addresseeIdInlineInput',
+        feedbackId: 'add-network-inline-feedback',
+        buttonId: 'send-friend-request-inline-btn',
+        panelId: 'network-add-panel'
+    });
+}
+
+/**
+ * Initialize user search functionality for friend requests
+ * @param {string} inputId - ID of the input element
+ */
+function initializeUserSearch(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    let searchTimeout;
+
+    input.addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+        clearTimeout(searchTimeout);
+
+        if (query.length < 2) {
+            hideSearchResults();
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`/Friends/SearchUsers?query=${encodeURIComponent(query)}`, {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+
+                if (data.success && data.users.length > 0) {
+                    showSearchResults(data.users, input);
+                } else {
+                    hideSearchResults();
+                }
+            } catch (err) {
+                console.error('Search error:', err);
+                hideSearchResults();
+            }
+        }, 300);
+    });
+}
+
+/**
+ * Display search results for user selection
+ * @param {Array} users - Array of user objects
+ * @param {HTMLElement} input - Input element to attach results to
+ */
+function showSearchResults(users, input) {
+    hideSearchResults(); // Remove any existing results
+
+    const resultsContainer = document.createElement('div');
+    resultsContainer.className = 'search-results-container';
+    resultsContainer.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+    `;
+
+    users.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.style.cssText = `
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        `;
+        item.innerHTML = `
+            <div><strong>${escapeHtml(user.fullName)}</strong></div>
+            <div class="text-muted small">${escapeHtml(user.email)}</div>
+        `;
+        item.addEventListener('click', () => {
+            input.value = user.id;
+            hideSearchResults();
+            input.focus();
+        });
+        resultsContainer.appendChild(item);
+    });
+
+    input.parentElement.appendChild(resultsContainer);
+    input.parentElement.classList.add('has-search-results');
+}
+
+/**
+ * Hide all search result containers
+ */
+function hideSearchResults() {
+    document.querySelectorAll('.search-results-container').forEach(el => el.remove());
+    document.querySelectorAll('.has-search-results').forEach(el => el.classList.remove('has-search-results'));
+}
+
+/**
+ * HTML escape utility function
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Debounce utility function
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Global function invoked by button onclick
+function openNetworkInlinePanel(event) {
+    try {
+        if (event) event.preventDefault();
+        const dropdown = document.getElementById('network-notifications-dropdown');
+        if (dropdown && !dropdown.classList.contains('show')) dropdown.classList.add('show');
+
+        const panelId = 'network-viewall-panel';
+        const root = document.getElementById(panelId);
+        if (!root) return;
+        // Show panel via toggleInlinePanel (handles positioning against correct owner)
+        try { toggleInlinePanel(panelId, event); } catch { root.classList.add('show'); }
+
+        const loading = document.getElementById('network-inline-loading');
+        const errEl = document.getElementById('network-inline-error');
+        const friendsEl = document.getElementById('network-inline-friends');
+        const incomingEl = document.getElementById('network-inline-incoming');
+        const outgoingEl = document.getElementById('network-inline-outgoing');
+
+        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+        if (friendsEl) friendsEl.innerHTML = '';
+        if (incomingEl) incomingEl.innerHTML = '';
+        if (outgoingEl) outgoingEl.innerHTML = '';
+        if (loading) loading.style.display = 'block';
+
+        Promise.all([
+            fetch('/Friends/Friends', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ success: false, friends: [] })),
+            fetch('/Friends/Pending', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ success: false, incoming: [], outgoing: [] })),
+        ]).then(([friendsRes, pendingRes]) => {
+            if (loading) loading.style.display = 'none';
+
+            // Friends
+            if (friendsRes?.success && Array.isArray(friendsRes.friends)) {
+                if (friendsRes.friends.length === 0) {
+                    friendsEl.innerHTML = '<li class="list-group-item small text-muted">No friends yet.</li>';
+                } else {
+                    friendsRes.friends.forEach(u => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.innerHTML = `
+                            <span>${escapeHtml(u.fullName || ('User #' + u.userId))}</span>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" data-action="send-file" data-user-id="${u.userId}">
+                                        <i class="bi bi-file-earmark-arrow-up me-2"></i>Send File
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="send-message" data-user-id="${u.userId}">
+                                        <i class="bi bi-chat-dots me-2"></i>Send Message
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" data-action="remove" data-user-id="${u.userId}">
+                                        <i class="bi bi-person-dash me-2"></i>Remove Friend
+                                    </a></li>
+                                </ul>
+                            </div>`;
+                        friendsEl.appendChild(li);
+                    });
+                }
+            } else {
+                friendsEl.innerHTML = '<li class="list-group-item small text-danger">Failed to load friends.</li>';
+            }
+
+            // Incoming
+            if (pendingRes?.success && Array.isArray(pendingRes.incoming)) {
+                if (pendingRes.incoming.length === 0) {
+                    incomingEl.innerHTML = '<li class="list-group-item small text-muted">No incoming requests.</li>';
+                } else {
+                    pendingRes.incoming.forEach(r => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.innerHTML = `<span>${escapeHtml(r.fullName || ('User #' + r.userId))}</span>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-success" data-action="accept" data-id="${r.id}">Accept</button>
+                                <button class="btn btn-sm btn-outline-secondary" data-action="reject" data-id="${r.id}">Reject</button>
+                            </div>`;
+                        incomingEl.appendChild(li);
+                    });
+                }
+            } else {
+                incomingEl.innerHTML = '<li class="list-group-item small text-danger">Failed to load incoming.</li>';
+            }
+
+            // Outgoing
+            if (pendingRes?.success && Array.isArray(pendingRes.outgoing)) {
+                if (pendingRes.outgoing.length === 0) {
+                    outgoingEl.innerHTML = '<li class="list-group-item small text-muted">No outgoing requests.</li>';
+                } else {
+                    pendingRes.outgoing.forEach(r => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.innerHTML = `<span>${escapeHtml(r.fullName || ('User #' + r.userId))}</span>
+                            <button class="btn btn-sm btn-outline-danger" data-action="cancel" data-id="${r.id}">Cancel</button>`;
+                        outgoingEl.appendChild(li);
+                    });
+                }
+            } else {
+                outgoingEl.innerHTML = '<li class="list-group-item small text-danger">Failed to load outgoing.</li>';
+            }
+
+            // Bind inline actions within this panel
+            root.querySelectorAll('[data-action]')?.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const el = e.currentTarget;
+                    const action = el.getAttribute('data-action');
+                    try {
+                        el.disabled = true;
+                        if (action === 'accept' || action === 'reject' || action === 'cancel') {
+                            const id = parseInt(el.getAttribute('data-id'));
+                            const url = action === 'accept' ? '/Friends/Accept' : (action === 'reject' ? '/Friends/Reject' : '/Friends/Cancel');
+                            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ id }) });
+                            const data = await res.json();
+                            if (!data.success) throw new Error(data.error || 'Action failed');
+                        } else if (action === 'remove') {
+                            const userId = parseInt(el.getAttribute('data-user-id'));
+                            const res = await fetch('/Friends/Remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ userId }) });
+                            const data = await res.json();
+                            if (!data.success) throw new Error(data.error || 'Remove failed');
+                        } else if (action === 'send-file') {
+                            const userId = parseInt(el.getAttribute('data-user-id'));
+                            // TODO: Implement file sending functionality
+                            alert(`Send file to user ${userId} - Feature coming soon!`);
+                        } else if (action === 'send-message') {
+                            const userId = parseInt(el.getAttribute('data-user-id'));
+                            // TODO: Implement messaging functionality
+                            alert(`Send message to user ${userId} - Feature coming soon!`);
+                        }
+                        // Refresh inline panel
+                        openNetworkInlinePanel();
+                    } catch (err) {
+                        console.error('Inline network action error:', err);
+                        el.disabled = false;
+                        alert(err?.message || 'Action failed');
+                    }
+                });
+            });
+        }).catch(err => {
+            if (loading) loading.style.display = 'none';
+            if (errEl) { errEl.textContent = 'Failed to load network data.'; errEl.style.display = 'block'; }
+            console.error('Network inline load error:', err);
+        });
+    } catch (e) { console.error('openNetworkInlinePanel (global) failed', e); }
+}
+
+// Global function invoked by button onclick
+function openAddNetworkModal() {
+    try {
+        // Close any open dropdowns so modal isn't obscured by high z-index menus
+        document.querySelectorAll('.dropdown-menu.show').forEach(openDropdown => {
+            openDropdown.classList.remove('show');
+            // Clear inline styles applied by toggleDropdown()
+            openDropdown.style.position = '';
+            openDropdown.style.top = '';
+            openDropdown.style.left = '';
+            openDropdown.style.right = '';
+            openDropdown.style.transform = '';
+            openDropdown.style.zIndex = '';
+            openDropdown.style.maxHeight = '';
+            openDropdown.style.overflow = '';
+        });
+
+        const modalEl = document.getElementById('addNetworkModal');
+        if (!modalEl) return;
+        const feedback = document.getElementById('add-network-feedback');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.className = 'small';
+        }
+        const input = document.getElementById('addresseeIdInput');
+        if (input) input.value = '';
+        // Reset send button state
+        const sendBtn = document.getElementById('send-friend-request-btn');
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send Request';
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    } catch (e) { console.error('Failed to open Add Network modal', e); }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const sendBtn = document.getElementById('send-friend-request-btn');
+    const form = document.getElementById('add-network-form');
+    const handler = async function (evt) {
+        if (evt) evt.preventDefault();
+        sendFriendRequestModal();
+    };
+    if (sendBtn) sendBtn.addEventListener('click', handler);
+    if (form) form.addEventListener('submit', handler);
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const sendBtn = document.getElementById('send-friend-request-inline-btn');
+    const handler = async function (evt) {
+        if (evt) evt.preventDefault();
+        const input = document.getElementById('addresseeIdInlineInput');
+        const feedback = document.getElementById('add-network-inline-feedback');
+        const sendBtnRef = document.getElementById('send-friend-request-inline-btn');
+        if (!input) {
+            console.error('Inline Add Network: input element missing');
+            return;
+        }
+        const val = (input.value || '').trim();
+        const id = parseInt(val, 10);
+
+        if (!val || (Number.isNaN(id) && val.length < 2)) {
+            if (feedback) {
+                feedback.textContent = 'Please enter a valid User ID or start typing a name to search.';
+                feedback.className = 'small text-danger';
+            }
+            return;
+        }
+
+        try {
+            if (sendBtnRef) { sendBtnRef.disabled = true; sendBtnRef.textContent = 'Sending...'; }
+            if (feedback) { feedback.textContent = ''; feedback.className = 'small'; }
+
+            const res = await fetch('/Friends/Send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ addresseeId: id })
+            });
+            let data;
+            try { data = await res.json(); } catch { data = null; }
+
+            if (!res.ok) {
+                const msg = data?.error || `Request failed with status ${res.status}`;
+                throw new Error(msg);
+            }
+
+            if (!data || data.success !== true) {
+                const msg = (data && data.error) ? data.error : 'Request failed';
+                throw new Error(msg);
+            }
+
+            if (feedback) {
+                feedback.textContent = 'Request sent successfully.';
+                feedback.className = 'small text-success';
+            }
+            if (sendBtnRef) sendBtnRef.textContent = 'Sent';
+
+            setTimeout(() => {
+                try {
+                    toggleInlinePanel('network-add-panel');
+                } catch { }
+            }, 700);
+        } catch (err) {
+            console.error('Inline friend request error:', err);
+            if (feedback) {
+                feedback.textContent = err?.message || 'Failed to send request';
+                feedback.className = 'small text-danger';
+            }
+            if (sendBtnRef) { sendBtnRef.disabled = false; sendBtnRef.textContent = 'Send Request'; }
+        }
+    };
+    if (sendBtn) sendBtn.addEventListener('click', handler);
+});
