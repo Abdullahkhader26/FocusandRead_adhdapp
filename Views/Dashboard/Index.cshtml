@@ -69,17 +69,26 @@
         </div>
     </div>
 
-    <!-- Notifications Offcanvas Panel -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsOffcanvas" aria-labelledby="notificationsOffcanvasLabel">
-        <div class="offcanvas-header">
-            <h5 id="notificationsOffcanvasLabel">Notifications</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div class="text-muted small mb-2">Your latest notifications will appear here.</div>
-            <ul class="list-group" id="notifications-list">
-                <li class="list-group-item small text-muted">No notifications yet.</li>
-            </ul>
+    <!-- Notifications have been moved to the connections menu -->
+    
+    <!-- Full Notifications Modal -->
+    <div class="modal fade" id="allNotificationsModal" tabindex="-1" aria-labelledby="allNotificationsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="allNotificationsModalLabel">All Notifications</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="all-notifications-list">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-bell-slash fs-1"></i>
+                        <p class="mt-2">No notifications yet.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -337,85 +346,14 @@
                 </div>
             </div>
 
-
             <!-- Network and Notifications dropdown -->
+            <!-- User dropdown with combined menu -->
             <div class="user-dropdown me-3 combined-icon">
-                <button class="nav-btn" onclick="toggleDropdown('network-notifications')">
-                    <i class="bi bi-people"></i>
-                    <span class="notification-badge">2</span>
-                </button>
-                <div class="dropdown-menu enhanced-dropdown" id="network-notifications-dropdown">
-                    <!-- Quick Actions as list (same design as Files) -->
-                    <div class="inline-panel-host">
-                        <div class="activity-item" onclick="toggleInlinePanel('network-add-panel', event)" style="cursor: pointer;">
-                            <div class="activity-icon text-primary">
-                                <i class="bi bi-person-plus"></i>
-                            </div>
-                            <div class="activity-info">
-                                <div class="activity-title">Add Network</div>
-                                <div class="activity-desc">Find classmates and add them</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Inline Add Network panel attached to Network dropdown -->
-                    <div class="dropdown-menu enhanced-dropdown inline-left-from-network" id="network-add-panel">
-                        <div class="dropdown-header">
-                            <i class="bi bi-person-plus"></i>
-                            <span>Add Network</span>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div class="px-3 py-2">
-                            <form id="add-network-inline-form">
-                                <div class="mb-2">
-                                    <label for="addresseeIdInlineInput" class="form-label mb-1">User ID</label>
-                                    <input type="number" class="form-control form-control-sm" id="addresseeIdInlineInput" placeholder="Enter user ID" required />
-                                    <div class="form-text">Enter the numeric ID of the user you want to add.</div>
-                                </div>
-                                <div id="add-network-inline-feedback" class="small"></div>
-                            </form>
-                            <div class="d-flex justify-content-end gap-2 mt-2">
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleInlinePanel('network-add-panel', event)">Close</button>
-                                <button type="button" class="btn btn-sm btn-primary" id="send-friend-request-inline-btn" onclick="sendFriendRequestInline()">Send Request</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="bi bi-bell"></i>
-                        </div>
-                        <div class="activity-info">
-                            <div class="activity-title">Recent Notifications</div>
-                            <div class="activity-desc">Your latest updates at a glance</div>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-icon text-success">
-                            <i class="bi bi-person-heart"></i>
-                        </div>
-                        <div class="activity-info">
-                            <div class="activity-title">Invite Friend</div>
-                            <div class="activity-desc">Send an invite link</div>
-                        </div>
-                    </div>
-
-                    <div class="dropdown-divider"></div>
-                    <!-- Only these links should remain below Invite Friend -->
-                    <a href="#" class="dropdown-item text-center" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" onclick="return false;">View All Notifications</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item text-center" onclick="try{openNetworkInlinePanel(event);}catch(e){var d=document.getElementById('network-notifications-dropdown');if(d&&!d.classList.contains('show'))d.classList.add('show');var p=document.getElementById('network-viewall-panel');if(p)p.classList.toggle('show');} return false;">View All Network</a>
-                </div>
-            </div>
-            
-
-            <!-- User dropdown -->
-            <div class="user-dropdown">
                 <button class="nav-btn user-btn" onclick="toggleDropdown('user')">
                     <i class="bi bi-person-circle"></i>
                     <span>@ViewBag.FullName</span>
                     <i class="bi bi-chevron-down ms-1"></i>
+                    <span class="notification-badge">2</span>
                 </button>
                 <div class="dropdown-menu enhanced-dropdown" id="user-dropdown">
                     <div class="dropdown-header">
@@ -424,6 +362,7 @@
                     </div>
                     <div class="dropdown-divider"></div>
 
+                    <!-- Reordered menu with Profile first -->
                     <div class="activity-item">
                         <div class="activity-icon">
                             <i class="bi bi-person"></i>
@@ -431,6 +370,36 @@
                         <div class="activity-info">
                             <div class="activity-title">Profile</div>
                             <div class="activity-desc">View and edit your profile</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item" onclick="toggleInlinePanel('notifications-panel', event)" style="cursor: pointer;">
+                        <div class="activity-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Notifications</div>
+                            <div class="activity-desc">View all your notifications</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item" onclick="toggleInlinePanel('network-add-panel', event)" style="cursor: pointer;">
+                        <div class="activity-icon text-primary">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">Add Network</div>
+                            <div class="activity-desc">Find classmates and add them</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item" onclick="try{openNetworkInlinePanel(event);}catch(e){var d=document.getElementById('user-dropdown');if(d&&!d.classList.contains('show'))d.classList.add('show');} return false;" style="cursor: pointer;">
+                        <div class="activity-icon text-primary">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="activity-info">
+                            <div class="activity-title">View All Network</div>
+                            <div class="activity-desc">See all your connections</div>
                         </div>
                     </div>
 
@@ -443,21 +412,59 @@
                             <div class="activity-desc">Preferences and account settings</div>
                         </div>
                     </div>
-
-                    <div class="activity-item" onclick="toggleDarkMode()" style="cursor: pointer;">
-                        <div class="activity-icon">
-                            <i class="bi bi-moon"></i>
+                    
+                    <div class="activity-item" style="cursor: pointer;" onclick="window.location.href='/Account/Logout'">
+                        <div class="activity-icon text-danger">
+                            <i class="bi bi-box-arrow-right"></i>
                         </div>
                         <div class="activity-info">
-                            <div class="activity-title">Dark Mode</div>
-                            <div class="activity-desc">Switch theme appearance</div>
+                            <div class="activity-title">Logout</div>
+                            <div class="activity-desc">Sign out of your account</div>
                         </div>
                     </div>
 
-                    <div class="dropdown-divider"></div>
-                    <a href="/Account/Logout" class="dropdown-item text-center">
-                        Logout <i class="bi bi-box-arrow-right ms-2"></i>
-                    </a>
+                    <!-- Inline Panels -->
+                    <div class="dropdown-menu enhanced-dropdown inline-left-from-network" id="notifications-panel">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Notifications</h6>
+                            <div>
+                                <a href="#" class="small me-2" onclick="event.preventDefault(); markAllAsRead()">Mark all as read</a>
+                                <button type="button" class="btn-close" onclick="toggleInlinePanel('notifications-panel', event)" aria-label="Close"></button>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div id="notifications-list" class="p-2" style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-bell-slash fs-1"></i>
+                                <p class="mt-2 mb-0">No notifications yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-menu enhanced-dropdown inline-left-from-network" id="network-add-panel">
+                        <div class="dropdown-header">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Add Network</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="px-3 py-2">
+                            <form id="add-network-inline-form">
+                                <div class="mb-2">
+                                    <label for="addresseeIdInlineInput" class="form-label mb-1">User ID</label>
+                                    <input type="text" class="form-control form-control-sm" id="addresseeIdInlineInput" placeholder="Enter user ID">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="messageInlineInput" class="form-label mb-1">Message (Optional)</label>
+                                    <textarea class="form-control form-control-sm" id="messageInlineInput" rows="2" placeholder="Add a personal message"></textarea>
+                                </div>
+                                <div id="add-network-inline-feedback" class="small"></div>
+                            </form>
+                            <div class="d-flex justify-content-end gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleInlinePanel('network-add-panel', event)">Close</button>
+                                <button type="button" class="btn btn-sm btn-primary" id="send-friend-request-inline-btn" onclick="sendFriendRequestInline()">Send Request</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

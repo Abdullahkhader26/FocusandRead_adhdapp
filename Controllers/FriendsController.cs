@@ -41,31 +41,56 @@ namespace ADHDWebApp.Controllers
                 if (!exists)
                     return Json(new { success = false, error = "User not found" });
 
-                // Prevent duplicates in either direction if there is an active (Pending/Accepted) relationship
-                var duplicate = await _context.FriendRequests.AnyAsync(fr =>
+                // Check if there's already an accepted friendship in either direction
+                var existingAccepted = await _context.FriendRequests.FirstOrDefaultAsync(fr =>
                     ((fr.RequesterId == requesterId && fr.AddresseeId == addresseeId) ||
                      (fr.RequesterId == addresseeId && fr.AddresseeId == requesterId)) &&
-                    (fr.Status == FriendRequestStatus.Pending || fr.Status == FriendRequestStatus.Accepted)
+                    fr.Status == FriendRequestStatus.Accepted
                 );
-                if (duplicate)
-                    return Json(new { success = false, error = "A request or relationship already exists" });
+                if (existingAccepted != null)
+                    return Json(new { success = false, error = "You are already friends" });
 
-                // If a previous request exists in either direction but was Rejected/Canceled, reuse it
-                var existing = await _context.FriendRequests.FirstOrDefaultAsync(fr =>
+                // Check if there's already a pending request in the same direction
+                var existingPendingSameDirection = await _context.FriendRequests.FirstOrDefaultAsync(fr =>
+                    fr.RequesterId == requesterId && fr.AddresseeId == addresseeId &&
+                    fr.Status == FriendRequestStatus.Pending
+                );
+                if (existingPendingSameDirection != null)
+                    return Json(new { success = false, error = "A pending request already exists" });
+
+                // Check if there's a pending request in the opposite direction
+                var existingPendingOppositeDirection = await _context.FriendRequests.FirstOrDefaultAsync(fr =>
+                    fr.RequesterId == addresseeId && fr.AddresseeId == requesterId &&
+                    fr.Status == FriendRequestStatus.Pending
+                );
+
+                if (existingPendingOppositeDirection != null)
+                {
+                    // Accept the existing request instead of creating a new one
+                    existingPendingOppositeDirection.Status = FriendRequestStatus.Accepted;
+                    existingPendingOppositeDirection.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, requestId = existingPendingOppositeDirection.Id, message = "Friend request accepted" });
+                }
+
+                // Check if there's a previously rejected/canceled request that we can reuse
+                var existingOldRequest = await _context.FriendRequests.FirstOrDefaultAsync(fr =>
                     (fr.RequesterId == requesterId && fr.AddresseeId == addresseeId) ||
                     (fr.RequesterId == addresseeId && fr.AddresseeId == requesterId)
                 );
 
-                if (existing != null)
+                if (existingOldRequest != null)
                 {
-                    existing.RequesterId = requesterId;
-                    existing.AddresseeId = addresseeId;
-                    existing.Status = FriendRequestStatus.Pending;
-                    existing.UpdatedAt = DateTime.UtcNow;
+                    // Reuse the existing request
+                    existingOldRequest.RequesterId = requesterId;
+                    existingOldRequest.AddresseeId = addresseeId;
+                    existingOldRequest.Status = FriendRequestStatus.Pending;
+                    existingOldRequest.UpdatedAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, requestId = existing.Id });
+                    return Json(new { success = true, requestId = existingOldRequest.Id });
                 }
 
+                // Create a new friend request
                 var fr = new FriendRequest
                 {
                     RequesterId = requesterId,

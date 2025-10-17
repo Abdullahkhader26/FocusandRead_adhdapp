@@ -36,9 +36,10 @@ namespace ADHDWebApp.Data
                       .HasForeignKey(fr => fr.AddresseeId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Unique pair: prevent duplicates in one direction
-                entity.HasIndex(fr => new { fr.RequesterId, fr.AddresseeId })
-                      .IsUnique();
+                // Remove the unique constraint that was causing issues
+                // The application logic now handles duplicates properly
+                // entity.HasIndex(fr => new { fr.RequesterId, fr.AddresseeId })
+                //       .IsUnique();
             });
 
             // SharedFile configuration

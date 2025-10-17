@@ -1294,3 +1294,166 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     if (sendBtn) sendBtn.addEventListener('click', handler);
 });
+
+// Initialize notifications
+let notifications = [];
+
+// Update notification badge in the connections menu
+function updateNotificationBadge() {
+    const unreadCount = notifications.filter(n => !n.read).length;
+    const badge = document.querySelector('.user-dropdown.me-3.combined-icon .notification-badge');
+    if (badge) {
+        badge.textContent = unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : '';
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+    return unreadCount;
+}
+
+// Render notifications in dropdown
+function renderNotifications() {
+    const container = document.getElementById('notifications-list');
+    if (!container) return;
+
+    if (notifications.length === 0) {
+        container.innerHTML = '<li class="px-3 py-2 text-muted small">No notifications yet.</li>';
+        return;
+    }
+
+    // Sort by date (newest first) and limit to 5 in dropdown
+    const recentNotifications = [...notifications]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+
+    container.innerHTML = recentNotifications.map(notification => `
+        <li class="notification-item ${!notification.read ? 'unread' : ''}" 
+            data-id="${notification.id}" 
+            onclick="markAsRead('${notification.id}')">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="me-2">
+                    <div class="fw-bold">${escapeHtml(notification.title)}</div>
+                    <div>${escapeHtml(notification.message)}</div>
+                </div>
+                <small class="notification-time">${formatTimeAgo(notification.date)}</small>
+            </div>
+        </li>
+    `).join('');
+}
+
+// Render notifications in the inline panel
+
+// Render notifications in the connections menu
+function renderNotifications() {
+    const container = document.getElementById('notifications-list');
+    if (!container) return;
+    
+    if (notifications.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-bell-slash fs-1"></i>
+                <p class="mt-2 mb-0">No notifications yet.</p>
+            </div>
+        `;
+    } else {
+        container.innerHTML = notifications.slice(0, 5).map(notification => `
+            <div class="notification-item ${!notification.read ? 'unread' : ''} p-3 border-bottom" 
+                 data-id="${notification.id}" 
+                 onclick="markAsRead('${notification.id}')">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="me-3">
+                        <h6 class="mb-1">${escapeHtml(notification.title)}</h6>
+                        <p class="mb-1 small text-muted">${escapeHtml(notification.message)}</p>
+                        <small class="text-muted">${formatTimeAgo(notification.date)}</small>
+                    </div>
+                    ${!notification.read ? '<span class="badge bg-primary">New</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        // Add a view all link if there are more than 5 notifications
+        if (notifications.length > 5) {
+            container.innerHTML += `
+                <div class="text-center mt-2">
+                    <a href="#" class="small" onclick="event.preventDefault();return false;">
+                        View all ${notifications.length} notifications
+                    </a>
+                </div>
+            `;
+        }
+    }
+    
+    // Update the notification badge
+    updateNotificationBadge();
+}
+
+// Mark notification as read
+function markAsRead(id) {
+    const notification = notifications.find(n => n.id === id);
+    if (notification && !notification.read) {
+        notification.read = true;
+        updateNotificationBadge();
+        renderNotifications();
+    }
+}
+
+// Add a new notification
+function addNotification(title, message, type = 'info') {
+    const newNotification = {
+        id: 'notif-' + Date.now(),
+        title,
+        message,
+        type,
+        read: false,
+        date: new Date().toISOString()
+    };
+    
+    notifications.unshift(newNotification);
+    updateNotificationBadge();
+    renderNotifications();
+    
+    // Show toast notification
+    showNotificationToast(title, message, type);
+}
+
+// Format time as "X time ago"
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
+    
+    return 'just now';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load any saved notifications from localStorage
+    const savedNotifications = localStorage.getItem('notifications');
+    if (savedNotifications) {
+        notifications = JSON.parse(savedNotifications);
+    }
+    
+    updateNotificationBadge();
+    renderNotifications();
+    
+    // Save notifications to localStorage when page unloads
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem('notifications', JSON.stringify(notifications));
+    });
+});
+
+// Example: Add a test notification
+// addNotification('New Message', 'You have a new message from John', 'info');

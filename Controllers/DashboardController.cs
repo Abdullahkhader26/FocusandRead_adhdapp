@@ -231,7 +231,7 @@ namespace ADHDWebApp.Controllers
                     displayType = "text";
                     break;
 
-                case ".pdf":
+                case ".pdf": 
                     using (var pdfReader = new PdfReader(fullPath))
                     using (var pdfDoc = new PdfDocument(pdfReader))
                     {
